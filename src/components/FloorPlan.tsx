@@ -297,6 +297,34 @@ const Table = ({
     ];
   };
 
+  const renderPlaceSettings = () => {
+    if (booked) return null;
+    if (type === "round") {
+      return Array.from({ length: seats }).map((_, i) => {
+        const angle = (i / seats) * Math.PI * 2;
+        const r = 0.42;
+        return (
+          <PlaceSetting
+            key={`ps-${i}`}
+            position={[Math.sin(angle) * r, 0.78, Math.cos(angle) * r]}
+            rotation={angle + Math.PI}
+          />
+        );
+      });
+    }
+    if (type === "rect") {
+      const settings: JSX.Element[] = [];
+      const perSide = seats / 2;
+      for (let i = 0; i < perSide; i++) {
+        const z = -0.6 + (i * 1.2) / Math.max(perSide - 1, 1);
+        settings.push(<PlaceSetting key={`psl-${i}`} position={[-0.3, 0.78, z]} rotation={Math.PI / 2} />);
+        settings.push(<PlaceSetting key={`psr-${i}`} position={[0.3, 0.78, z]} rotation={-Math.PI / 2} />);
+      }
+      return settings;
+    }
+    return null;
+  };
+
   // Status disc on the floor under the table
   const discRadius = type === "rect" ? 1.2 : 0.85;
   const discY = 0.015;
