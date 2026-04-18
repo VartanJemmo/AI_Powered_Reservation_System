@@ -383,9 +383,10 @@ const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; s
 
   return (
     <>
-      <fog attach="fog" args={["#0a0604", 6, 30]} />
-      <ambientLight intensity={0.18} color="#ffb066" />
-      <hemisphereLight args={["#3a2114", "#0a0604", 0.25]} />
+      <fog attach="fog" args={["#1a0f08", 18, 55]} />
+      <ambientLight intensity={0.85} color="#ffd9a8" />
+      <hemisphereLight args={["#ffc987", "#3a2114", 0.7]} />
+      <directionalLight position={[0, 8, 0]} intensity={0.4} color="#ffd9a8" />
       <Floor />
       <Ceiling />
       <Walls />
