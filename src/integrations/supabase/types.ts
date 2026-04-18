@@ -101,6 +101,45 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          created_at: string
+          feedback_type: string
+          guest_email: string | null
+          guest_name: string
+          guest_phone: string | null
+          id: string
+          message: string
+          rating: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_type: string
+          guest_email?: string | null
+          guest_name: string
+          guest_phone?: string | null
+          id?: string
+          message: string
+          rating: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: string
+          guest_email?: string | null
+          guest_name?: string
+          guest_phone?: string | null
+          id?: string
+          message?: string
+          rating?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reminder_log: {
         Row: {
           channel: string
