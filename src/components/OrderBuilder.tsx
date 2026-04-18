@@ -132,10 +132,23 @@ export const OrderBuilder = () => {
                 return (
                   <article
                     key={m.id}
-                    className={`glass-card p-5 transition-colors ${
+                    className={`glass-card overflow-hidden transition-colors ${
                       qty > 0 ? "border-primary/50" : "hover:border-primary/30"
                     }`}
                   >
+                    {m.image && (
+                      <div className="aspect-[4/3] overflow-hidden">
+                        <img
+                          src={m.image}
+                          alt={m.name}
+                          loading="lazy"
+                          width={1024}
+                          height={1024}
+                          className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <div className={m.image ? "p-5" : "p-5"}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-display text-lg">{m.name}</h3>
@@ -177,6 +190,7 @@ export const OrderBuilder = () => {
                           Add
                         </button>
                       )}
+                    </div>
                     </div>
                   </article>
                 );

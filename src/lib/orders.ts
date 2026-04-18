@@ -7,6 +7,7 @@ export type MenuItem = {
   desc: string;
   price: number;
   category: MenuCategory;
+  image?: string;
 };
 
 export type OrderItem = {
@@ -30,6 +31,12 @@ export type GuestOrder = {
 
 const STORAGE_KEY = "mayrig.orders.v1";
 
+import cocktailNegroni from "@/assets/cocktail-negroni.jpg";
+import cocktailMojito from "@/assets/cocktail-mojito.jpg";
+import cocktailEspressoMartini from "@/assets/cocktail-espresso-martini.jpg";
+import cocktailPomegranateSpritz from "@/assets/cocktail-pomegranate-spritz.jpg";
+import cocktailOldFashioned from "@/assets/cocktail-old-fashioned.jpg";
+
 export const MENU: MenuItem[] = [
   // Food
   { id: "f1", name: "Mezze of the House", desc: "Hummus, muhammara, baba ganoush, lavash", price: 28, category: "food" },
@@ -37,11 +44,12 @@ export const MENU: MenuItem[] = [
   { id: "f3", name: "Mante Dumplings", desc: "Hand-folded beef dumplings, garlic yogurt, sumac", price: 24, category: "food" },
   { id: "f4", name: "Su Boereg", desc: "Layered cheese pastry, parsley, nigella", price: 18, category: "food" },
   { id: "f5", name: "Soujouk Skillet", desc: "Spiced Armenian sausage, eggs, peppers", price: 22, category: "food" },
-  // Drinks
-  { id: "d1", name: "Armenian Coffee", desc: "Cardamom-scented, served with loukoum", price: 6, category: "drinks" },
-  { id: "d2", name: "Areni Red Wine", desc: "Glass · Vayots Dzor highlands", price: 14, category: "drinks" },
-  { id: "d3", name: "Pomegranate Spritz", desc: "Fresh pomegranate, soda, mint", price: 10, category: "drinks" },
-  { id: "d4", name: "Tahn", desc: "Chilled yogurt drink, sea salt, mint", price: 5, category: "drinks" },
+  // Cocktails (international)
+  { id: "d1", name: "Negroni", desc: "Italian classic · gin, Campari, sweet vermouth, orange peel", price: 16, category: "drinks", image: cocktailNegroni },
+  { id: "d2", name: "Mojito", desc: "Cuban highball · white rum, lime, mint, soda", price: 14, category: "drinks", image: cocktailMojito },
+  { id: "d3", name: "Espresso Martini", desc: "Vodka, fresh espresso, coffee liqueur, velvet foam", price: 17, category: "drinks", image: cocktailEspressoMartini },
+  { id: "d4", name: "Pomegranate Spritz", desc: "House signature · pomegranate, prosecco, mint", price: 15, category: "drinks", image: cocktailPomegranateSpritz },
+  { id: "d5", name: "Old Fashioned", desc: "American classic · bourbon, bitters, orange, sugar", price: 18, category: "drinks", image: cocktailOldFashioned },
   // Desserts
   { id: "ds1", name: "Pistachio Baklava", desc: "Layered phyllo, rosewater syrup, gold leaf", price: 14, category: "desserts" },
   { id: "ds2", name: "Kadayif", desc: "Shredded phyllo, walnuts, orange blossom", price: 12, category: "desserts" },
