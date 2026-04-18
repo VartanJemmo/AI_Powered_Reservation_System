@@ -365,18 +365,18 @@ const Rugs = () => (
   </>
 );
 
-const RestaurantScene = () => {
+const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; seats: number }) => void }) => {
   const tables = useMemo(
     () =>
       [
-        { p: [-8, 0, -8] as [number, number, number], s: "round" as const },
-        { p: [-8, 0, 0] as [number, number, number], s: "round" as const },
-        { p: [-8, 0, 8] as [number, number, number], s: "round" as const },
-        { p: [0, 0, -8] as [number, number, number], s: "round" as const },
-        { p: [0, 0, 0] as [number, number, number], s: "round" as const },
-        { p: [0, 0, 8] as [number, number, number], s: "round" as const },
-        { p: [-13, 0, -10] as [number, number, number], s: "rect" as const },
-        { p: [-13, 0, 10] as [number, number, number], s: "rect" as const },
+        { id: "T1", p: [-8, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T2", p: [-8, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T3", p: [-8, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T4", p: [0, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T5", p: [0, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T6", p: [0, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "B1", p: [-13, 0, -10] as [number, number, number], s: "rect" as const, seats: 6 },
+        { id: "B2", p: [-13, 0, 10] as [number, number, number], s: "rect" as const, seats: 6 },
       ],
     [],
   );
@@ -392,7 +392,15 @@ const RestaurantScene = () => {
       <Rugs />
       <Bar />
       {tables.map((t, i) => (
-        <Table key={i} position={t.p} shape={t.s} rotation={(i * Math.PI) / 5} />
+        <Table
+          key={t.id}
+          id={t.id}
+          seats={t.seats}
+          position={t.p}
+          shape={t.s}
+          rotation={(i * Math.PI) / 5}
+          onSelect={onSelectTable}
+        />
       ))}
       <Chandelier position={[-4, 0, -4]} />
       <Chandelier position={[-4, 0, 4]} />
