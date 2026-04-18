@@ -126,19 +126,27 @@ const Admin = () => {
   }, [allReservations]);
 
   const filtered = useMemo(() => {
-    return dayList.filter((r) => {
-      if (filter !== "all" && r.status !== filter) return false;
-      if (query.trim()) {
-        const q = query.toLowerCase();
-        if (
-          !r.name.toLowerCase().includes(q) &&
-          !r.phone.toLowerCase().includes(q) &&
-          !(r.email ?? "").toLowerCase().includes(q)
-        ) return false;
-      }
-      return true;
-    });
-  }, [dayList, filter, query]);
+    const q = query.trim().toLowerCase();
+    const qDigits = q.replace(/\D/g, "");
+    // When searching, look across ALL dates so the manager can find a guest
+    // even if they don't know the day. Otherwise stick to the selected day.
+    const source = q ? allReservations : dayList;
+    return source
+      .filter((r) => {
+        if (filter !== "all" && r.status !== filter) return false;
+        if (!q) return true;
+        const phoneDigits = r.phone.replace(/\D/g, "");
+        return (
+          r.name.toLowerCase().includes(q) ||
+          r.phone.toLowerCase().includes(q) ||
+          (qDigits.length >= 3 && phoneDigits.includes(qDigits)) ||
+          (r.email ?? "").toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) =>
+        a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
+      );
+  }, [dayList, allReservations, filter, query]);
 
   const slots = useMemo(() => getSlotsForDate(date, 1), [date, tick]);
 
