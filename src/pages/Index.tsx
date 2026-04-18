@@ -5,6 +5,7 @@ import { MenuPreview } from "@/components/MenuPreview";
 import { OrderBuilder } from "@/components/OrderBuilder";
 import { Gallery } from "@/components/Gallery";
 import { ReservationWidget } from "@/components/ReservationWidget";
+import { FloorPlan } from "@/components/FloorPlan";
 import { Feedback } from "@/components/Feedback";
 import { Delivery } from "@/components/Delivery";
 import { Visit } from "@/components/Visit";
@@ -34,6 +35,7 @@ const Index = () => {
       <MenuPreview />
       <OrderBuilder />
       <Gallery />
+      <FloorPlan />
       <ReservationWidget />
       <Feedback />
       <Delivery />
