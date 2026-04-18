@@ -9,6 +9,7 @@ import {
   todayISO,
   type SlotInfo,
 } from "@/lib/reservations";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
@@ -91,6 +92,32 @@ export const ReservationWidget = () => {
         deposit,
         status: asWaitlist ? "waitlist" : "confirmed",
       });
+
+      // Fire-and-forget confirmation email. Skipped silently when no email
+      // was provided. Errors are logged but never block the booking flow.
+      if (r.email) {
+        supabase.functions
+          .invoke("send-transactional-email", {
+            body: {
+              templateName: "reservation-confirmation",
+              recipientEmail: r.email,
+              idempotencyKey: `reservation-confirm-${r.id}`,
+              templateData: {
+                name: r.name,
+                date: r.date,
+                time: r.time,
+                partySize: r.partySize,
+                deposit: r.deposit,
+                notes: r.notes,
+                status: r.status,
+              },
+            },
+          })
+          .then(({ error }) => {
+            if (error) console.error("confirmation email failed:", error);
+          });
+      }
+
       navigate(`/confirmation/${r.id}`);
     } catch (err) {
       console.error(err);
