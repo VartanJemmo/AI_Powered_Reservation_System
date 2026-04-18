@@ -23,7 +23,7 @@ export const Delivery = () => (
       <div className="mt-12 grid md:grid-cols-3 gap-5">
         <Feature
           icon={<Clock className="h-5 w-5" />}
-          title="Daily 12:00 – 23:30"
+          title="Daily 12:00 PM – 12:00 AM"
           body="Last delivery orders 30 minutes before closing."
         />
         <Feature

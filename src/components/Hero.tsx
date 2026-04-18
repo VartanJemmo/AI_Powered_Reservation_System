@@ -102,7 +102,7 @@ export const Hero = () => {
           <div className="mt-10 flex items-center justify-center lg:justify-start gap-6 text-xs uppercase tracking-widest text-muted-foreground animate-fade-in" style={{ animationDelay: "1100ms" }}>
             <span className="text-primary">★★★★★ 4.9</span>
             <span aria-hidden>·</span>
-            <span>Open today · 12:00 – 24:00</span>
+            <span>Open today · 12:00 PM – 12:00 AM</span>
           </div>
         </div>
 
