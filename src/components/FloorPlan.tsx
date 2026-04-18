@@ -1,7 +1,16 @@
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
+import {
+  ALL_TIMES,
+  formatDateLong,
+  getBookedTables,
+  refreshReservations,
+  subscribeReservations,
+  todayISO,
+} from "@/lib/reservations";
+import { toast } from "sonner";
 
 const GOLD = "#c9a84c";
 const GOLD_GLOW = "#f0d78c";
@@ -9,6 +18,8 @@ const WOOD = "#3a2a1f";
 const WOOD_DARK = "#2a1d15";
 const CREAM = "#e8dcc4";
 const FLOOR = "#1a120c";
+const RED = "#a8392e";
+const GREEN = "#3a8f5e";
 
 type TableData = {
   id: string;
@@ -85,23 +96,42 @@ const Candle = ({ position }: { position: [number, number, number] }) => {
   );
 };
 
-const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; onHover: (id: string | null) => void }) => {
+const Table = ({
+  data,
+  hovered,
+  selected,
+  booked,
+  onHover,
+  onClick,
+}: {
+  data: TableData;
+  hovered: boolean;
+  selected: boolean;
+  booked: boolean;
+  onHover: (id: string | null) => void;
+  onClick: (id: string) => void;
+}) => {
   const { type, position, seats, id } = data;
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame(() => {
     if (groupRef.current) {
-      const targetY = hovered ? 0.08 : 0;
+      const targetY = (hovered || selected) && !booked ? 0.1 : 0;
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.12);
     }
   });
+
+  // Status ring color
+  const statusColor = booked ? RED : selected ? GOLD : GREEN;
+  const ringEmissive = booked ? RED : selected ? GOLD_GLOW : GREEN;
+  const topColor = booked ? "#3a1f1a" : selected ? "#5a4220" : WOOD;
 
   const renderTop = () => {
     if (type === "round") {
       return (
         <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.65, 0.65, 0.06, 32]} />
-          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+          <meshStandardMaterial color={topColor} roughness={0.4} metalness={0.1} />
         </mesh>
       );
     }
@@ -109,14 +139,14 @@ const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; 
       return (
         <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
           <boxGeometry args={[1, 0.06, 1.8]} />
-          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+          <meshStandardMaterial color={topColor} roughness={0.4} metalness={0.1} />
         </mesh>
       );
     }
     return (
       <mesh position={[0, 1.1, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.45, 0.45, 0.05, 24]} />
-        <meshStandardMaterial color={WOOD} roughness={0.3} metalness={0.2} />
+        <meshStandardMaterial color={topColor} roughness={0.3} metalness={0.2} />
       </mesh>
     );
   };
@@ -177,26 +207,52 @@ const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; 
     ];
   };
 
+  // Status disc on the floor under the table
+  const discRadius = type === "rect" ? 1.2 : 0.85;
+  const discY = 0.015;
+
   return (
     <group
       ref={groupRef}
       position={position}
-      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = "pointer"; }}
+      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = booked ? "not-allowed" : "pointer"; }}
       onPointerOut={() => { onHover(null); document.body.style.cursor = "default"; }}
+      onClick={(e) => { e.stopPropagation(); onClick(id); }}
     >
+      {/* Floor disc — green available, red booked, gold selected */}
+      <mesh position={[0, discY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        {type === "rect" ? (
+          <planeGeometry args={[1.6, 2.4]} />
+        ) : (
+          <circleGeometry args={[discRadius, 32]} />
+        )}
+        <meshStandardMaterial
+          color={statusColor}
+          emissive={ringEmissive}
+          emissiveIntensity={selected ? 0.6 : hovered ? 0.4 : 0.25}
+          transparent
+          opacity={selected ? 0.55 : 0.32}
+        />
+      </mesh>
+
       {renderTop()}
       {renderLeg()}
       {renderChairs()}
-      {(type === "round" || type === "rect") && <Candle position={[0, 0.77, 0]} />}
-      {type === "rect" && <Candle position={[0, 0.77, -0.5]} />}
-      {type === "rect" && <Candle position={[0, 0.77, 0.5]} />}
+      {(type === "round" || type === "rect") && !booked && <Candle position={[0, 0.77, 0]} />}
+      {type === "rect" && !booked && <Candle position={[0, 0.77, -0.5]} />}
+      {type === "rect" && !booked && <Candle position={[0, 0.77, 0.5]} />}
 
-      {hovered && (
+      {(hovered || selected) && (
         <Html position={[0, type === "bar" ? 1.6 : 1.4, 0]} center distanceFactor={10}>
-          <div className="pointer-events-none rounded-md border border-primary/60 bg-background/90 backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap">
+          <div className={`pointer-events-none rounded-md border backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap ${
+            booked ? "border-destructive/60 bg-background/90" : selected ? "border-primary bg-primary/20" : "border-primary/60 bg-background/90"
+          }`}>
             <div className="font-display text-primary text-sm">Table {id}</div>
             <div className="text-muted-foreground uppercase tracking-widest text-[10px]">
               {type === "bar" ? "Bar high" : type === "round" ? "Round" : "Banquet"} · {seats} seats
+            </div>
+            <div className={`uppercase tracking-widest text-[10px] mt-0.5 ${booked ? "text-destructive" : selected ? "text-primary" : "text-emerald-400"}`}>
+              {booked ? "Booked" : selected ? "Selected" : "Available"}
             </div>
           </div>
         </Html>
