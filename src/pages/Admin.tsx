@@ -340,6 +340,8 @@ const Admin = () => {
             })}
           </div>
 
+          <AdminFloorPlan date={date} reservations={dayList} />
+
           <div className="mt-10 flex items-end justify-between gap-4">
             <h2 className="font-display text-xl">
               Bookings <span className="text-muted-foreground text-sm font-sans ml-2">({filtered.length})</span>
