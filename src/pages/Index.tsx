@@ -6,6 +6,7 @@ import { OrderBuilder } from "@/components/OrderBuilder";
 import { Gallery } from "@/components/Gallery";
 import { ReservationWidget } from "@/components/ReservationWidget";
 import { Feedback } from "@/components/Feedback";
+import { Delivery } from "@/components/Delivery";
 import { Visit } from "@/components/Visit";
 import { Footer } from "@/components/Footer";
 import { StickyReserveBar } from "@/components/StickyReserveBar";
@@ -35,6 +36,7 @@ const Index = () => {
       <Gallery />
       <ReservationWidget />
       <Feedback />
+      <Delivery />
       <Visit />
       <Footer />
       <StickyReserveBar />
