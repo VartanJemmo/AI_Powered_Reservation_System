@@ -469,6 +469,34 @@ export const Walkthrough3D = () => {
   const [locked, setLocked] = useState(false);
   const touchDir = useRef({ x: 0, y: 0 });
   const controlsRef = useRef<any>(null);
+  const [picked, setPicked] = useState<{ id: string; seats: number } | null>(null);
+
+  const handleSelectTable = (t: { id: string; seats: number }) => {
+    try {
+      if (document.pointerLockElement) document.exitPointerLock();
+    } catch {}
+    setPicked(t);
+  };
+
+  const reserveNow = () => {
+    if (!picked) return;
+    sessionStorage.setItem(
+      "mayrig.preselected-table",
+      JSON.stringify({ tableId: picked.id, seats: picked.seats }),
+    );
+    setPicked(null);
+    const el = document.getElementById("reserve");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Safe lock — guard against unmounted DOM (the runtime "Target Element removed" error)
+  const tryLock = () => {
+    requestAnimationFrame(() => {
+      try {
+        controlsRef.current?.lock?.();
+      } catch {}
+    });
+  };
 
   return (
     <section
@@ -481,14 +509,14 @@ export const Walkthrough3D = () => {
           <span className="eyebrow"><span className="gold-divider" /> Step inside</span>
           <h2 className="mt-3 font-display text-3xl sm:text-4xl">Walk through Mayrig</h2>
           <p className="mt-3 text-muted-foreground text-sm sm:text-base">
-            Drift between candlelit tables, glide past the bar, and feel the warmth of the room before you arrive.
+            Drift between candlelit tables, glide past the bar, and tap any glowing table to reserve it.
           </p>
         </div>
 
         <div className="mt-8 relative w-full h-[70vh] min-h-[480px] max-h-[860px] rounded-2xl overflow-hidden border border-border shadow-elev bg-black">
           <Canvas shadows camera={{ fov: 70, near: 0.1, far: 100 }} dpr={[1, 1.5]}>
             <Suspense fallback={<Html center><span className="text-primary text-xs">Lighting candles…</span></Html>}>
-              <RestaurantScene />
+              <RestaurantScene onSelectTable={handleSelectTable} />
               <Player touchDir={touchDir} />
               <PointerLockControls
                 ref={controlsRef}
@@ -501,16 +529,16 @@ export const Walkthrough3D = () => {
           {locked && <Crosshair />}
           <Joystick dirRef={touchDir} />
 
-          {!locked && (
+          {!locked && !picked && (
             <button
-              onClick={() => controlsRef.current?.lock?.()}
+              onClick={tryLock}
               className="absolute inset-0 z-20 grid place-items-center bg-background/70 backdrop-blur-sm hidden md:grid"
               aria-label="Enter walkthrough"
             >
               <div className="text-center px-6">
                 <div className="font-display text-2xl sm:text-3xl gold-text">Enter the room</div>
                 <p className="mt-2 text-sm text-muted-foreground max-w-md">
-                  Click to look around · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">W A S D</kbd> to walk · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Shift</kbd> to glide · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Esc</kbd> to release
+                  Click to look around · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">W A S D</kbd> to walk · Tap any table to reserve · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Esc</kbd> to release
                 </p>
                 <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium shadow-gold">
                   Begin the stroll
@@ -519,9 +547,34 @@ export const Walkthrough3D = () => {
             </button>
           )}
 
-          {/* Mobile hint */}
+          {picked && (
+            <div className="absolute inset-0 z-30 grid place-items-center bg-background/75 backdrop-blur-sm animate-fade-in">
+              <div className="max-w-sm w-[90%] rounded-2xl border border-primary/40 bg-card p-6 shadow-gold animate-scale-in text-center">
+                <span className="eyebrow text-primary justify-center inline-flex"><span className="gold-divider" /> Table {picked.id}</span>
+                <h3 className="mt-2 font-display text-2xl gold-text">Reserve this table?</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Seats up to {picked.seats}. We'll take you to the booking form with this table pre-selected.
+                </p>
+                <div className="mt-5 flex gap-2 justify-center">
+                  <button
+                    onClick={() => setPicked(null)}
+                    className="rounded-full px-4 py-2 text-sm border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                  >
+                    Keep walking
+                  </button>
+                  <button
+                    onClick={reserveNow}
+                    className="rounded-full px-5 py-2 text-sm bg-primary text-primary-foreground font-medium shadow-gold hover:opacity-90 transition-opacity"
+                  >
+                    Reserve {picked.id} →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="absolute top-3 right-3 md:hidden text-[10px] uppercase tracking-widest text-primary/80 bg-background/60 backdrop-blur px-2 py-1 rounded-full border border-primary/30 z-10">
-            Drag to look · Joystick to walk
+            Drag to look · Tap a table
           </div>
         </div>
       </div>
