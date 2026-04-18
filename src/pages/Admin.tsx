@@ -45,6 +45,18 @@ const Admin = () => {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("reservations");
+  const [editing, setEditing] = useState<Reservation | null>(null);
+
+  const handleDelete = async (r: Reservation) => {
+    if (!confirm(`Delete reservation for ${r.name} (${r.date} ${r.time})? This cannot be undone.`)) return;
+    try {
+      await deleteReservation(r.id);
+      toast.success("Reservation deleted.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not delete reservation.");
+    }
+  };
 
   const handleLogout = () => {
     logout();
