@@ -352,7 +352,15 @@ const Chandelier = ({ position }: { position: [number, number, number] }) => (
   </group>
 );
 
-const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (id: string | null) => void }) => (
+type SceneProps = {
+  hovered: string | null;
+  selected: string | null;
+  bookedSet: Set<string>;
+  setHovered: (id: string | null) => void;
+  onPick: (id: string) => void;
+};
+
+const Scene = ({ hovered, selected, bookedSet, setHovered, onPick }: SceneProps) => (
   <>
     <ambientLight intensity={0.15} color={GOLD_GLOW} />
     <directionalLight position={[5, 8, 5]} intensity={0.3} color={GOLD_GLOW} castShadow />
@@ -364,7 +372,15 @@ const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (i
     <Walls />
 
     {TABLES.map((t) => (
-      <Table key={t.id} data={t} hovered={hovered === t.id} onHover={setHovered} />
+      <Table
+        key={t.id}
+        data={t}
+        hovered={hovered === t.id}
+        selected={selected === t.id}
+        booked={bookedSet.has(t.id)}
+        onHover={setHovered}
+        onClick={onPick}
+      />
     ))}
 
     <ContactShadows position={[0, 0.01, 0]} opacity={0.6} scale={20} blur={2} far={4} />
@@ -372,10 +388,66 @@ const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (i
   </>
 );
 
+function buildDateOptions(days = 14) {
+  const out: { iso: string; weekday: string; day: number; month: string }[] = [];
+  const base = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    out.push({
+      iso: d.toISOString().slice(0, 10),
+      weekday: d.toLocaleDateString("en-US", { weekday: "short" }),
+      day: d.getDate(),
+      month: d.toLocaleDateString("en-US", { month: "short" }),
+    });
+  }
+  return out;
+}
+
 export const FloorPlan = () => {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [date, setDate] = useState<string>(todayISO());
+  const [time, setTime] = useState<string>("19:30");
+  const [tick, setTick] = useState(0);
 
-  const scrollToReserve = () => {
+  const dates = useMemo(() => buildDateOptions(14), []);
+
+  // Refresh + subscribe to live reservation changes
+  useEffect(() => {
+    refreshReservations();
+    const unsub = subscribeReservations(() => setTick((t) => t + 1));
+    return () => { unsub(); };
+  }, []);
+
+  const bookedSet = useMemo(() => getBookedTables(date, time), [date, time, tick]);
+  const selectedTable = TABLES.find((t) => t.id === selected) ?? null;
+  const availableCount = TABLES.length - bookedSet.size;
+
+  // Clear selection if it becomes unavailable
+  useEffect(() => {
+    if (selected && bookedSet.has(selected)) setSelected(null);
+  }, [bookedSet, selected]);
+
+  const handlePick = (id: string) => {
+    if (bookedSet.has(id)) {
+      toast.error(`Table ${id} is booked at ${time}. Try another time or table.`);
+      return;
+    }
+    setSelected(id);
+  };
+
+  const reserveSelected = () => {
+    if (!selectedTable) {
+      toast.info("Pick an available table first");
+      return;
+    }
+    sessionStorage.setItem(
+      "mayrig.preselected-table",
+      JSON.stringify({ tableId: selectedTable.id, seats: selectedTable.seats, date, time }),
+    );
+    toast.success(`Table ${selectedTable.id} held — complete your booking`);
     document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -386,7 +458,7 @@ export const FloorPlan = () => {
           <span className="eyebrow"><span className="gold-divider" /> Floor plan</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Choose your corner</h2>
           <p className="mt-4 text-muted-foreground">
-            Drag to rotate, scroll to zoom. Hover a table to see its capacity. From intimate round tables under the chandeliers to long banquet seats and the gilded bar — pick where the evening unfolds.
+            Pick a date and time, then tap a table on the 3D plan. Green tables are free, red are taken. Your selection holds for the booking step.
           </p>
         </div>
 
@@ -411,35 +483,92 @@ export const FloorPlan = () => {
           </div>
         </div>
 
-        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs">
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Round tables</span>
+        {/* Date + time picker */}
+        <div className="mt-6 rounded-xl border border-border bg-surface/40 p-4 sm:p-5">
+          <div className="flex items-baseline justify-between flex-wrap gap-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-primary/90">Check availability</div>
+            <div className="text-xs text-muted-foreground">
+              <span className="text-emerald-400">{availableCount}</span> of {TABLES.length} tables free · {formatDateLong(date)} · {time}
             </div>
-            <p className="mt-2 text-muted-foreground">2–6 guests · candlelit, intimate</p>
           </div>
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-1.5 bg-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Banquet</span>
-            </div>
-            <p className="mt-2 text-muted-foreground">6–8 guests · long shared tables</p>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+            {dates.map((d, i) => {
+              const active = d.iso === date;
+              return (
+                <button
+                  key={d.iso}
+                  onClick={() => setDate(d.iso)}
+                  className={`shrink-0 w-14 sm:w-16 rounded-lg border px-2 py-2 text-center transition-all ${
+                    active
+                      ? "bg-gradient-gold text-primary-foreground border-transparent shadow-gold"
+                      : "border-border bg-secondary/40 hover:border-primary/40"
+                  }`}
+                >
+                  <div className="text-[9px] uppercase tracking-widest opacity-80">{d.weekday}</div>
+                  <div className="text-base font-display">{d.day}</div>
+                  <div className="text-[9px] uppercase tracking-widest opacity-80">{d.month}</div>
+                  {i === 0 && (
+                    <div className={`mt-0.5 text-[8px] uppercase tracking-widest ${active ? "" : "text-primary"}`}>Today</div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm border border-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Bar high tables</span>
-            </div>
-            <p className="mt-2 text-muted-foreground">2 guests · perched by the gold bar</p>
+          <div className="mt-3 grid grid-cols-5 sm:grid-cols-9 gap-2">
+            {ALL_TIMES.map((t) => {
+              const active = time === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTime(t)}
+                  className={`h-10 rounded-lg border text-xs transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border bg-secondary/40 hover:border-primary/40"
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-10 relative rounded-2xl overflow-hidden border border-border shadow-elev bg-gradient-to-b from-surface to-background">
+        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full" style={{ background: GREEN }} />
+              <span className="uppercase tracking-widest text-emerald-400">Available</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">Tap a table to select it</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-primary" />
+              <span className="uppercase tracking-widest text-primary/90">Selected</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">{selectedTable ? `Table ${selectedTable.id} · ${selectedTable.seats} seats` : "Nothing selected yet"}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full" style={{ background: RED }} />
+              <span className="uppercase tracking-widest text-destructive/90">Booked</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">Try another time slot</p>
+          </div>
+        </div>
+
+        <div className="mt-6 relative rounded-2xl overflow-hidden border border-border shadow-elev bg-gradient-to-b from-surface to-background">
           <div className="aspect-[16/10] w-full">
             <Canvas shadows camera={{ position: [9, 9, 12], fov: 45 }}>
               <Suspense fallback={null}>
-                <Scene hovered={hovered} setHovered={setHovered} />
+                <Scene
+                  hovered={hovered}
+                  selected={selected}
+                  bookedSet={bookedSet}
+                  setHovered={setHovered}
+                  onPick={handlePick}
+                />
                 <OrbitControls
                   enablePan={false}
                   minDistance={8}
@@ -450,15 +579,20 @@ export const FloorPlan = () => {
               </Suspense>
             </Canvas>
           </div>
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none gap-3 flex-wrap">
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded">
-              Drag · Scroll · Hover
+              Drag · Scroll · Click table
             </div>
             <button
-              onClick={scrollToReserve}
-              className="pointer-events-auto rounded-full border border-primary/60 bg-primary/10 text-primary px-4 py-2 text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors backdrop-blur"
+              onClick={reserveSelected}
+              disabled={!selectedTable}
+              className={`pointer-events-auto rounded-full border px-5 py-2 text-xs uppercase tracking-widest backdrop-blur transition-colors ${
+                selectedTable
+                  ? "border-primary bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
+                  : "border-border bg-background/60 text-muted-foreground cursor-not-allowed"
+              }`}
             >
-              Reserve a table
+              {selectedTable ? `Reserve Table ${selectedTable.id}` : "Pick a table"}
             </button>
           </div>
         </div>
