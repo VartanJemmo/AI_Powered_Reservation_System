@@ -17,6 +17,7 @@ export type Reservation = {
   notes?: string;
   seating: Seating;
   status: "confirmed" | "no-show" | "seated" | "waitlist";
+  tableId?: string;
   createdAt: string;
 };
 
@@ -63,6 +64,7 @@ type Row = {
   notes: string | null;
   seating: Seating;
   status: Reservation["status"];
+  table_id?: string | null;
   created_at: string;
 };
 
@@ -79,6 +81,7 @@ function rowToReservation(r: Row): Reservation {
     notes: r.notes ?? undefined,
     seating: (r.seating ?? "indoor-non-smoking") as Seating,
     status: r.status,
+    tableId: r.table_id ?? undefined,
     createdAt: r.created_at,
   };
 }
@@ -138,7 +141,7 @@ export function nextAvailable(date: string, party: number, around?: string): Slo
 export async function createReservation(
   input: Omit<Reservation, "id" | "createdAt" | "status"> & { status?: Reservation["status"] },
 ): Promise<Reservation> {
-  const insertRow = {
+  const insertRow: Record<string, unknown> = {
     name: input.name,
     phone: input.phone,
     email: input.email ?? null,
@@ -150,9 +153,10 @@ export async function createReservation(
     seating: input.seating,
     status: input.status ?? "confirmed",
   };
+  if (input.tableId) insertRow.table_id = input.tableId;
   const { data, error } = await supabase
     .from("reservations")
-    .insert(insertRow)
+    .insert(insertRow as never)
     .select("*")
     .single();
   if (error || !data) {
@@ -163,6 +167,20 @@ export async function createReservation(
   cache = [...cache, r];
   notify();
   return r;
+}
+
+/**
+ * Returns the set of table IDs already booked for a given date+time.
+ * A confirmed reservation that has a tableId blocks that table for that slot.
+ */
+export function getBookedTables(date: string, time: string): Set<string> {
+  const out = new Set<string>();
+  for (const r of cache) {
+    if (r.date !== date || r.time !== time) continue;
+    if (r.status === "no-show") continue;
+    if (r.tableId) out.add(r.tableId);
+  }
+  return out;
 }
 
 export async function updateReservationStatus(id: string, status: Reservation["status"]) {
