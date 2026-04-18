@@ -14,7 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      reminder_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          payload: Json | null
+          recipient_email: string | null
+          reservation_id: string
+          status: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          recipient_email?: string | null
+          reservation_id: string
+          status: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          recipient_email?: string | null
+          reservation_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_log_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          deposit: boolean
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          party_size: number
+          phone: string
+          reminder_sent_at: string | null
+          reservation_date: string
+          reservation_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deposit?: boolean
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          party_size: number
+          phone: string
+          reminder_sent_at?: string | null
+          reservation_date: string
+          reservation_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deposit?: boolean
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          party_size?: number
+          phone?: string
+          reminder_sent_at?: string | null
+          reservation_date?: string
+          reservation_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -70,7 +70,7 @@ export const ReservationWidget = () => {
   const goNext = () => setStep((s) => Math.min(4, s + 1) as Step);
   const goBack = () => setStep((s) => Math.max(1, s - 1) as Step);
 
-  const submit = (asWaitlist = false) => {
+  const submit = async (asWaitlist = false) => {
     if (!name.trim() || !phone.trim()) {
       toast.error("Please add your name and phone");
       return;
@@ -79,18 +79,23 @@ export const ReservationWidget = () => {
       toast.error("Please pick a time");
       return;
     }
-    const r = createReservation({
-      date,
-      time: time ?? "—",
-      partySize: party,
-      name: name.trim(),
-      phone: phone.trim(),
-      email: email.trim() || undefined,
-      notes: notes.trim() || undefined,
-      deposit,
-      status: asWaitlist ? "waitlist" : "confirmed",
-    });
-    navigate(`/confirmation/${r.id}`);
+    try {
+      const r = await createReservation({
+        date,
+        time: time ?? "—",
+        partySize: party,
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        notes: notes.trim() || undefined,
+        deposit,
+        status: asWaitlist ? "waitlist" : "confirmed",
+      });
+      navigate(`/confirmation/${r.id}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not save your reservation. Please try again.");
+    }
   };
 
   return (
