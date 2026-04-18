@@ -47,30 +47,116 @@ const TABLES: TableData[] = [
   { id: "B4", type: "bar", position: [6.5, 0, 3], seats: 2 },
 ];
 
+const CUSHION = "#6b2a24";
+const CUSHION_DARK = "#4a1a16";
+const PORCELAIN = "#f5efe4";
+const BRASS = "#b8923a";
+const GLASS = "#a8c4d4";
+
 const Chair = ({ position, rotation = 0, high = false }: { position: [number, number, number]; rotation?: number; high?: boolean }) => {
-  const seatY = high ? 0.85 : 0.45;
-  const backH = high ? 0.5 : 0.6;
+  const seatY = high ? 0.85 : 0.46;
+  const backH = high ? 0.55 : 0.7;
   return (
     <group position={position} rotation={[0, rotation, 0]}>
+      {/* Seat base — upholstered cushion */}
       <mesh position={[0, seatY, 0]} castShadow>
-        <boxGeometry args={[0.4, 0.06, 0.4]} />
-        <meshStandardMaterial color={WOOD} roughness={0.6} />
+        <boxGeometry args={[0.46, 0.1, 0.44]} />
+        <meshStandardMaterial color={CUSHION} roughness={0.85} />
       </mesh>
-      <mesh position={[0, seatY + backH / 2, -0.18]} castShadow>
-        <boxGeometry args={[0.4, backH, 0.05]} />
-        <meshStandardMaterial color={WOOD} roughness={0.6} />
+      <mesh position={[0, seatY + 0.06, 0]} castShadow>
+        <boxGeometry args={[0.4, 0.05, 0.38]} />
+        <meshStandardMaterial color={CUSHION_DARK} roughness={0.9} />
       </mesh>
-      {[-0.16, 0.16].map((x) =>
-        [-0.16, 0.16].map((z) => (
+      {/* Wooden curved tall back */}
+      <mesh position={[0, seatY + backH / 2 + 0.05, -0.2]} castShadow>
+        <boxGeometry args={[0.46, backH, 0.08]} />
+        <meshStandardMaterial color={WOOD} roughness={0.5} />
+      </mesh>
+      {/* Padded back cushion */}
+      <mesh position={[0, seatY + backH / 2, -0.16]} castShadow>
+        <boxGeometry args={[0.36, backH * 0.75, 0.05]} />
+        <meshStandardMaterial color={CUSHION} roughness={0.85} />
+      </mesh>
+      {/* Armrests — only on dining chairs */}
+      {!high && (
+        <>
+          <mesh position={[-0.24, seatY + 0.18, -0.02]} castShadow>
+            <boxGeometry args={[0.05, 0.06, 0.34]} />
+            <meshStandardMaterial color={WOOD} roughness={0.5} />
+          </mesh>
+          <mesh position={[0.24, seatY + 0.18, -0.02]} castShadow>
+            <boxGeometry args={[0.05, 0.06, 0.34]} />
+            <meshStandardMaterial color={WOOD} roughness={0.5} />
+          </mesh>
+        </>
+      )}
+      {/* Brass stud accent on back */}
+      <mesh position={[0, seatY + backH + 0.02, -0.2]} castShadow>
+        <sphereGeometry args={[0.025, 10, 10]} />
+        <meshStandardMaterial color={BRASS} metalness={0.9} roughness={0.25} />
+      </mesh>
+      {/* Tapered legs */}
+      {[-0.18, 0.18].map((x) =>
+        [-0.18, 0.18].map((z) => (
           <mesh key={`${x}-${z}`} position={[x, seatY / 2, z]} castShadow>
-            <cylinderGeometry args={[0.025, 0.025, seatY, 8]} />
-            <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
+            <cylinderGeometry args={[0.022, 0.032, seatY, 10]} />
+            <meshStandardMaterial color={WOOD_DARK} roughness={0.6} />
           </mesh>
         ))
       )}
     </group>
   );
 };
+
+const PlaceSetting = ({ position, rotation = 0 }: { position: [number, number, number]; rotation?: number }) => (
+  <group position={position} rotation={[0, rotation, 0]}>
+    {/* Charger plate (brass) */}
+    <mesh position={[0, 0.005, 0]} castShadow>
+      <cylinderGeometry args={[0.16, 0.16, 0.01, 24]} />
+      <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
+    </mesh>
+    {/* Dinner plate */}
+    <mesh position={[0, 0.012, 0]} castShadow>
+      <cylinderGeometry args={[0.13, 0.13, 0.008, 24]} />
+      <meshStandardMaterial color={PORCELAIN} roughness={0.35} />
+    </mesh>
+    {/* Plate rim */}
+    <mesh position={[0, 0.017, 0]}>
+      <torusGeometry args={[0.115, 0.005, 6, 24]} />
+      <meshStandardMaterial color={BRASS} metalness={0.6} roughness={0.4} />
+    </mesh>
+    {/* Folded napkin */}
+    <mesh position={[0, 0.022, 0]} rotation={[0, Math.PI / 5, 0]}>
+      <boxGeometry args={[0.13, 0.006, 0.13]} />
+      <meshStandardMaterial color={CUSHION_DARK} roughness={0.95} />
+    </mesh>
+    {/* Wine glass */}
+    <group position={[0.18, 0, -0.06]}>
+      <mesh position={[0, 0.005, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.005, 16]} />
+        <meshStandardMaterial color={GLASS} transparent opacity={0.45} roughness={0.05} />
+      </mesh>
+      <mesh position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.008, 0.008, 0.11, 8]} />
+        <meshStandardMaterial color={GLASS} transparent opacity={0.5} roughness={0.05} />
+      </mesh>
+      <mesh position={[0, 0.16, 0]}>
+        <sphereGeometry args={[0.045, 16, 16]} />
+        <meshStandardMaterial color={GLASS} transparent opacity={0.4} roughness={0.05} metalness={0.1} />
+      </mesh>
+    </group>
+    {/* Knife */}
+    <mesh position={[0.18, 0.008, 0.08]} castShadow>
+      <boxGeometry args={[0.012, 0.004, 0.16]} />
+      <meshStandardMaterial color="#d8d4cc" metalness={0.85} roughness={0.2} />
+    </mesh>
+    {/* Fork */}
+    <mesh position={[-0.18, 0.008, 0.08]} castShadow>
+      <boxGeometry args={[0.012, 0.004, 0.16]} />
+      <meshStandardMaterial color="#d8d4cc" metalness={0.85} roughness={0.2} />
+    </mesh>
+  </group>
+);
 
 const Candle = ({ position }: { position: [number, number, number] }) => {
   const flameRef = useRef<THREE.Mesh>(null);
