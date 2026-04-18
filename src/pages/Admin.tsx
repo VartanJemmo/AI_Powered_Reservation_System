@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   formatDateLong, getSlotsForDate, loadReservations,
   SLOT_CAPACITY_VALUE, todayISO, updateReservationStatus, type Reservation,
 } from "@/lib/reservations";
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/auth";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
 
