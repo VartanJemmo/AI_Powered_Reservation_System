@@ -1,0 +1,391 @@
+import { Suspense, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Environment, Html, ContactShadows } from "@react-three/drei";
+import * as THREE from "three";
+
+const GOLD = "#c9a84c";
+const GOLD_GLOW = "#f0d78c";
+const WOOD = "#3a2a1f";
+const WOOD_DARK = "#2a1d15";
+const CREAM = "#e8dcc4";
+const FLOOR = "#1a120c";
+
+type TableData = {
+  id: string;
+  type: "round" | "rect" | "bar";
+  position: [number, number, number];
+  seats: number;
+  rotation?: number;
+};
+
+const TABLES: TableData[] = [
+  // Round tables — main dining
+  { id: "R1", type: "round", position: [-5, 0, -3], seats: 4 },
+  { id: "R2", type: "round", position: [-5, 0, 1], seats: 4 },
+  { id: "R3", type: "round", position: [-5, 0, 5], seats: 2 },
+  { id: "R4", type: "round", position: [-1.5, 0, -3], seats: 6 },
+  { id: "R5", type: "round", position: [-1.5, 0, 5], seats: 4 },
+  // Rectangular tables — banquet row
+  { id: "T1", type: "rect", position: [2.5, 0, -3], seats: 6 },
+  { id: "T2", type: "rect", position: [2.5, 0, 0], seats: 6 },
+  { id: "T3", type: "rect", position: [2.5, 0, 3], seats: 8 },
+  // Bar high tables
+  { id: "B1", type: "bar", position: [6.5, 0, -3], seats: 2 },
+  { id: "B2", type: "bar", position: [6.5, 0, -1], seats: 2 },
+  { id: "B3", type: "bar", position: [6.5, 0, 1], seats: 2 },
+  { id: "B4", type: "bar", position: [6.5, 0, 3], seats: 2 },
+];
+
+const Chair = ({ position, rotation = 0, high = false }: { position: [number, number, number]; rotation?: number; high?: boolean }) => {
+  const seatY = high ? 0.85 : 0.45;
+  const backH = high ? 0.5 : 0.6;
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      <mesh position={[0, seatY, 0]} castShadow>
+        <boxGeometry args={[0.4, 0.06, 0.4]} />
+        <meshStandardMaterial color={WOOD} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, seatY + backH / 2, -0.18]} castShadow>
+        <boxGeometry args={[0.4, backH, 0.05]} />
+        <meshStandardMaterial color={WOOD} roughness={0.6} />
+      </mesh>
+      {[-0.16, 0.16].map((x) =>
+        [-0.16, 0.16].map((z) => (
+          <mesh key={`${x}-${z}`} position={[x, seatY / 2, z]} castShadow>
+            <cylinderGeometry args={[0.025, 0.025, seatY, 8]} />
+            <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
+          </mesh>
+        ))
+      )}
+    </group>
+  );
+};
+
+const Candle = ({ position }: { position: [number, number, number] }) => {
+  const flameRef = useRef<THREE.Mesh>(null);
+  useFrame((state) => {
+    if (flameRef.current) {
+      const t = state.clock.elapsedTime;
+      flameRef.current.scale.y = 1 + Math.sin(t * 8) * 0.08;
+      flameRef.current.scale.x = 1 + Math.cos(t * 6) * 0.05;
+    }
+  });
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.12, 12]} />
+        <meshStandardMaterial color={CREAM} emissive={GOLD_GLOW} emissiveIntensity={0.2} />
+      </mesh>
+      <mesh ref={flameRef} position={[0, 0.18, 0]}>
+        <sphereGeometry args={[0.035, 8, 8]} />
+        <meshBasicMaterial color={GOLD_GLOW} />
+      </mesh>
+      <pointLight position={[0, 0.22, 0]} color={GOLD_GLOW} intensity={0.6} distance={1.8} decay={2} />
+    </group>
+  );
+};
+
+const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; onHover: (id: string | null) => void }) => {
+  const { type, position, seats, id } = data;
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    if (groupRef.current) {
+      const targetY = hovered ? 0.08 : 0;
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.12);
+    }
+  });
+
+  const renderTop = () => {
+    if (type === "round") {
+      return (
+        <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.65, 0.65, 0.06, 32]} />
+          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+        </mesh>
+      );
+    }
+    if (type === "rect") {
+      return (
+        <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1, 0.06, 1.8]} />
+          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+        </mesh>
+      );
+    }
+    return (
+      <mesh position={[0, 1.1, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.45, 0.45, 0.05, 24]} />
+        <meshStandardMaterial color={WOOD} roughness={0.3} metalness={0.2} />
+      </mesh>
+    );
+  };
+
+  const renderLeg = () => {
+    if (type === "round" || type === "bar") {
+      const h = type === "bar" ? 1.1 : 0.74;
+      return (
+        <>
+          <mesh position={[0, h / 2, 0]} castShadow>
+            <cylinderGeometry args={[0.05, 0.05, h, 12]} />
+            <meshStandardMaterial color={WOOD_DARK} metalness={0.6} roughness={0.4} />
+          </mesh>
+          <mesh position={[0, 0.02, 0]} castShadow>
+            <cylinderGeometry args={[type === "bar" ? 0.3 : 0.35, type === "bar" ? 0.3 : 0.35, 0.04, 16]} />
+            <meshStandardMaterial color={WOOD_DARK} metalness={0.6} roughness={0.4} />
+          </mesh>
+        </>
+      );
+    }
+    return [-0.4, 0.4].map((x) =>
+      [-0.8, 0.8].map((z) => (
+        <mesh key={`${x}-${z}`} position={[x, 0.37, z]} castShadow>
+          <boxGeometry args={[0.06, 0.74, 0.06]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.5} />
+        </mesh>
+      ))
+    );
+  };
+
+  const renderChairs = () => {
+    if (type === "round") {
+      return Array.from({ length: seats }).map((_, i) => {
+        const angle = (i / seats) * Math.PI * 2;
+        const r = 1.05;
+        return (
+          <Chair
+            key={i}
+            position={[Math.sin(angle) * r, 0, Math.cos(angle) * r]}
+            rotation={angle + Math.PI}
+          />
+        );
+      });
+    }
+    if (type === "rect") {
+      const chairs: JSX.Element[] = [];
+      const perSide = seats / 2;
+      for (let i = 0; i < perSide; i++) {
+        const z = -0.6 + (i * 1.2) / Math.max(perSide - 1, 1);
+        chairs.push(<Chair key={`l-${i}`} position={[-0.85, 0, z]} rotation={Math.PI / 2} />);
+        chairs.push(<Chair key={`r-${i}`} position={[0.85, 0, z]} rotation={-Math.PI / 2} />);
+      }
+      return chairs;
+    }
+    return [
+      <Chair key="b1" position={[-0.7, 0, 0]} rotation={Math.PI / 2} high />,
+      <Chair key="b2" position={[0.7, 0, 0]} rotation={-Math.PI / 2} high />,
+    ];
+  };
+
+  return (
+    <group
+      ref={groupRef}
+      position={position}
+      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = "pointer"; }}
+      onPointerOut={() => { onHover(null); document.body.style.cursor = "default"; }}
+    >
+      {renderTop()}
+      {renderLeg()}
+      {renderChairs()}
+      {(type === "round" || type === "rect") && <Candle position={[0, 0.77, 0]} />}
+      {type === "rect" && <Candle position={[0, 0.77, -0.5]} />}
+      {type === "rect" && <Candle position={[0, 0.77, 0.5]} />}
+
+      {hovered && (
+        <Html position={[0, type === "bar" ? 1.6 : 1.4, 0]} center distanceFactor={10}>
+          <div className="pointer-events-none rounded-md border border-primary/60 bg-background/90 backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap">
+            <div className="font-display text-primary text-sm">Table {id}</div>
+            <div className="text-muted-foreground uppercase tracking-widest text-[10px]">
+              {type === "bar" ? "Bar high" : type === "round" ? "Round" : "Banquet"} · {seats} seats
+            </div>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+};
+
+const Floor = () => (
+  <>
+    {/* Main floor */}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[20, 16]} />
+      <meshStandardMaterial color={FLOOR} roughness={0.85} />
+    </mesh>
+    {/* Persian rug under round tables */}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-3.2, 0.005, 1]}>
+      <planeGeometry args={[5.5, 11]} />
+      <meshStandardMaterial color="#5a2a1f" roughness={0.9} />
+    </mesh>
+    {/* Bar floor accent */}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[6.5, 0.005, 0]}>
+      <planeGeometry args={[3, 11]} />
+      <meshStandardMaterial color="#1f1610" roughness={0.7} metalness={0.2} />
+    </mesh>
+  </>
+);
+
+const Walls = () => (
+  <>
+    {/* Back wall */}
+    <mesh position={[0, 2, -7.9]} receiveShadow>
+      <boxGeometry args={[20, 4, 0.2]} />
+      <meshStandardMaterial color="#1a130d" roughness={0.9} />
+    </mesh>
+    {/* Side walls */}
+    <mesh position={[-9.9, 2, 0]} receiveShadow>
+      <boxGeometry args={[0.2, 4, 16]} />
+      <meshStandardMaterial color="#1a130d" roughness={0.9} />
+    </mesh>
+    <mesh position={[9.9, 2, 0]} receiveShadow>
+      <boxGeometry args={[0.2, 4, 16]} />
+      <meshStandardMaterial color="#1a130d" roughness={0.9} />
+    </mesh>
+    {/* Bar counter */}
+    <group position={[8.3, 0, 0]}>
+      <mesh position={[0, 0.55, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.8, 1.1, 10]} />
+        <meshStandardMaterial color={WOOD_DARK} roughness={0.4} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 1.13, 0]} castShadow>
+        <boxGeometry args={[0.9, 0.05, 10]} />
+        <meshStandardMaterial color={GOLD} metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Back-bar shelves with bottles */}
+      <mesh position={[0.7, 1.6, 0]}>
+        <boxGeometry args={[0.05, 1.6, 9]} />
+        <meshStandardMaterial color={WOOD_DARK} roughness={0.5} />
+      </mesh>
+      {Array.from({ length: 18 }).map((_, i) => (
+        <mesh key={i} position={[0.85, 1.4 + (i % 2) * 0.7, -4 + (i * 0.5)]} castShadow>
+          <cylinderGeometry args={[0.06, 0.06, 0.35, 8]} />
+          <meshStandardMaterial
+            color={i % 3 === 0 ? "#7a3a2a" : i % 3 === 1 ? "#2a4a3a" : GOLD}
+            roughness={0.2}
+            metalness={0.4}
+          />
+        </mesh>
+      ))}
+    </group>
+    {/* Decorative arches on back wall */}
+    {[-6, -2, 2, 6].map((x) => (
+      <mesh key={x} position={[x, 1.8, -7.78]}>
+        <boxGeometry args={[1.4, 2.4, 0.05]} />
+        <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.3} emissive={GOLD} emissiveIntensity={0.05} />
+      </mesh>
+    ))}
+  </>
+);
+
+const Chandelier = ({ position }: { position: [number, number, number] }) => (
+  <group position={position}>
+    <mesh>
+      <torusGeometry args={[0.5, 0.04, 8, 24]} />
+      <meshStandardMaterial color={GOLD} metalness={0.9} roughness={0.2} emissive={GOLD} emissiveIntensity={0.2} />
+    </mesh>
+    {Array.from({ length: 8 }).map((_, i) => {
+      const a = (i / 8) * Math.PI * 2;
+      return (
+        <mesh key={i} position={[Math.sin(a) * 0.5, -0.1, Math.cos(a) * 0.5]}>
+          <sphereGeometry args={[0.06, 8, 8]} />
+          <meshBasicMaterial color={GOLD_GLOW} />
+        </mesh>
+      );
+    })}
+    <pointLight color={GOLD_GLOW} intensity={1.2} distance={8} decay={2} />
+  </group>
+);
+
+const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (id: string | null) => void }) => (
+  <>
+    <ambientLight intensity={0.15} color={GOLD_GLOW} />
+    <directionalLight position={[5, 8, 5]} intensity={0.3} color={GOLD_GLOW} castShadow />
+
+    <Chandelier position={[-3, 3.2, 0]} />
+    <Chandelier position={[3, 3.2, 0]} />
+
+    <Floor />
+    <Walls />
+
+    {TABLES.map((t) => (
+      <Table key={t.id} data={t} hovered={hovered === t.id} onHover={setHovered} />
+    ))}
+
+    <ContactShadows position={[0, 0.01, 0]} opacity={0.6} scale={20} blur={2} far={4} />
+    <Environment preset="night" />
+  </>
+);
+
+export const FloorPlan = () => {
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  const scrollToReserve = () => {
+    document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <section id="floorplan" className="py-24 sm:py-32 bg-background relative overflow-hidden">
+      <div className="container-narrow">
+        <div className="max-w-2xl">
+          <span className="eyebrow"><span className="gold-divider" /> Floor plan</span>
+          <h2 className="mt-4 font-display text-4xl sm:text-5xl">Choose your corner</h2>
+          <p className="mt-4 text-muted-foreground">
+            Drag to rotate, scroll to zoom. Hover a table to see its capacity. From intimate round tables under the chandeliers to long banquet seats and the gilded bar — pick where the evening unfolds.
+          </p>
+        </div>
+
+        <div className="mt-10 grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-primary/80" />
+              <span className="uppercase tracking-widest text-primary/90">Round tables</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">2–6 guests · candlelit, intimate</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-1.5 bg-primary/80" />
+              <span className="uppercase tracking-widest text-primary/90">Banquet</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">6–8 guests · long shared tables</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm border border-primary/80" />
+              <span className="uppercase tracking-widest text-primary/90">Bar high tables</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">2 guests · perched by the gold bar</p>
+          </div>
+        </div>
+
+        <div className="mt-10 relative rounded-2xl overflow-hidden border border-border shadow-elev bg-gradient-to-b from-surface to-background">
+          <div className="aspect-[16/10] w-full">
+            <Canvas shadows camera={{ position: [9, 9, 12], fov: 45 }}>
+              <Suspense fallback={null}>
+                <Scene hovered={hovered} setHovered={setHovered} />
+                <OrbitControls
+                  enablePan={false}
+                  minDistance={8}
+                  maxDistance={22}
+                  maxPolarAngle={Math.PI / 2.2}
+                  minPolarAngle={Math.PI / 6}
+                />
+              </Suspense>
+            </Canvas>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded">
+              Drag · Scroll · Hover
+            </div>
+            <button
+              onClick={scrollToReserve}
+              className="pointer-events-auto rounded-full border border-primary/60 bg-primary/10 text-primary px-4 py-2 text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors backdrop-blur"
+            >
+              Reserve a table
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
