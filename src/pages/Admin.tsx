@@ -4,6 +4,7 @@ import {
   formatDateLong, getSlotsForDate, loadReservations,
   SLOT_CAPACITY_VALUE, todayISO, updateReservationStatus, type Reservation,
 } from "@/lib/reservations";
+import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 
