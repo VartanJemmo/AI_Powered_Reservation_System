@@ -428,6 +428,7 @@ const Admin = () => {
           <GuestOrdersPanel tick={tick} />
         </section>
       </div>
+      )}
     </main>
   );
 };
