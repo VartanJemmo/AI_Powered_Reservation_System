@@ -55,17 +55,37 @@ export const ReservationWidget = () => {
   // Pick up a table preselected from the 3D Floor Plan
   useEffect(() => {
     const raw = sessionStorage.getItem("mayrig.preselected-table");
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as { tableId: string; seats: number; date: string; time: string };
-      setTableId(parsed.tableId);
-      if (parsed.date) setDate(parsed.date);
-      if (parsed.time) setTime(parsed.time);
-      if (parsed.seats) setParty(Math.min(parsed.seats, 8));
-      setStep(3);
-      sessionStorage.removeItem("mayrig.preselected-table");
-    } catch (e) {
-      console.error("Failed to parse preselected table", e);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as { tableId: string; seats: number; date: string; time: string };
+        setTableId(parsed.tableId);
+        if (parsed.date) setDate(parsed.date);
+        if (parsed.time) setTime(parsed.time);
+        if (parsed.seats) setParty(Math.min(parsed.seats, 8));
+        setStep(3);
+        sessionStorage.removeItem("mayrig.preselected-table");
+        return;
+      } catch (e) {
+        console.error("Failed to parse preselected table", e);
+      }
+    }
+    // Pick up a quick-reserve handoff from the Hero card
+    const quick = sessionStorage.getItem("mayrig.quick-reserve");
+    if (quick) {
+      try {
+        const parsed = JSON.parse(quick) as { date: string; party: number; time: string | null };
+        if (parsed.date) setDate(parsed.date);
+        if (parsed.party) setParty(parsed.party);
+        if (parsed.time) {
+          setTime(parsed.time);
+          setStep(3);
+        } else {
+          setStep(2);
+        }
+        sessionStorage.removeItem("mayrig.quick-reserve");
+      } catch (e) {
+        console.error("Failed to parse quick-reserve handoff", e);
+      }
     }
   }, []);
 
