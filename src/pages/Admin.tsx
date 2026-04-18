@@ -4,7 +4,7 @@ import {
   fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
   refreshReservations, SEATING_LABELS, subscribeReservations,
-  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationStatus,
+  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationPartySize, updateReservationStatus,
   type ReminderLogEntry, type Reservation,
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
@@ -489,9 +489,7 @@ const Admin = () => {
                   {r.notes && <div className="text-xs text-muted-foreground mt-0.5 italic">"{r.notes}"</div>}
                 </div>
                 <div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary border border-border px-2 py-0.5 text-xs">
-                    👥 {r.partySize}
-                  </span>
+                  <PartySizeStepper reservation={r} />
                 </div>
                 <div className="text-muted-foreground text-xs lg:text-sm">{r.phone}</div>
                 <div className="text-muted-foreground text-xs lg:text-sm truncate">{r.email ?? "—"}</div>
@@ -543,6 +541,49 @@ const Stat = ({ k, v, accent }: { k: string; v: string; accent?: "destructive" }
     <div className={`font-display text-3xl mt-1 ${accent === "destructive" ? "text-destructive" : "gold-text"}`}>{v}</div>
   </div>
 );
+
+const PartySizeStepper = ({ reservation }: { reservation: Reservation }) => {
+  const [busy, setBusy] = useState(false);
+
+  const change = async (delta: number) => {
+    const next = reservation.partySize + delta;
+    if (next < 1 || next > 20 || busy) return;
+    setBusy(true);
+    try {
+      await updateReservationPartySize(reservation.id, next);
+      toast.success(`Party size updated to ${next}.`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not update party size.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full bg-secondary border border-border px-1.5 py-0.5 text-xs">
+      <button
+        type="button"
+        onClick={() => change(-1)}
+        disabled={busy || reservation.partySize <= 1}
+        aria-label="Decrease party size"
+        className="h-5 w-5 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        −
+      </button>
+      <span className="min-w-[2ch] text-center font-medium">👥 {reservation.partySize}</span>
+      <button
+        type="button"
+        onClick={() => change(1)}
+        disabled={busy || reservation.partySize >= 20}
+        aria-label="Increase party size"
+        className="h-5 w-5 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        +
+      </button>
+    </div>
+  );
+};
 
 const StatusPill = ({ status }: { status: Reservation["status"] }) => {
   const map: Record<Reservation["status"], string> = {
