@@ -120,4 +120,44 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* Per-character hero entrance — blur in + drift up */
+  .hero-char {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(14px);
+    animation: heroChar 1100ms var(--ease-out) forwards;
+  }
+  @keyframes heroChar {
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+
+  /* Sound bar visualizer (used by AmbientLayer toggle) */
+  @keyframes soundBar {
+    0%, 100% { transform: scaleY(0.35); }
+    50%      { transform: scaleY(1); }
+  }
+  .animate-sound-bar {
+    transform-origin: bottom;
+    animation: soundBar 800ms ease-in-out infinite;
+  }
+
+  /* Story strip foil reveal */
+  .story-foil {
+    background: linear-gradient(115deg,
+      transparent 0%,
+      transparent 40%,
+      hsl(42 78% 70% / 0.35) 50%,
+      transparent 60%,
+      transparent 100%);
+    background-size: 250% 100%;
+    background-position: 150% 0;
+    mix-blend-mode: screen;
+  }
+  .story-card.is-revealed .story-foil {
+    animation: foilSweep 1600ms var(--ease-out) forwards;
+  }
+  @keyframes foilSweep {
+    to { background-position: -150% 0; }
+  }
 }
