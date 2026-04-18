@@ -163,14 +163,7 @@ const Admin = () => {
 
   const searchSuggestions = useMemo(() => {
     if (!trimmedQuery) return [] as Reservation[];
-
-    const seen = new Set<string>();
-    return filtered.filter((r) => {
-      const key = `${r.name}__${r.phone}__${r.email ?? ""}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 6);
+    return filtered.slice(0, 8);
   }, [filtered, trimmedQuery]);
 
   const slots = useMemo(() => getSlotsForDate(date, 1), [date, tick]);
