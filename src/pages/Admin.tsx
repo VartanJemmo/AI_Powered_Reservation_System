@@ -10,6 +10,7 @@ import {
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
@@ -54,6 +55,52 @@ const Admin = () => {
   const setStatusAsync = async (id: string, s: Reservation["status"]) => {
     await updateReservationStatus(id, s);
     setTick((t) => t + 1);
+  };
+
+  const sendCancellationEmail = (
+    r: Reservation,
+    reason: "no-show" | "cancelled",
+  ) => {
+    if (!r.email) return;
+    supabase.functions
+      .invoke("send-transactional-email", {
+        body: {
+          templateName: "reservation-cancellation",
+          recipientEmail: r.email,
+          idempotencyKey: `reservation-cancel-${reason}-${r.id}`,
+          templateData: {
+            name: r.name,
+            date: r.date,
+            time: r.time,
+            partySize: r.partySize,
+            reason,
+          },
+        },
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error("cancellation email failed:", error);
+          toast.error("Status updated, but email failed to send.");
+        } else {
+          toast.success(
+            reason === "no-show"
+              ? "Marked as no-show — email sent to guest."
+              : "Reservation cancelled — email sent to guest.",
+          );
+        }
+      });
+  };
+
+  const handleNoShow = async (r: Reservation) => {
+    const wasNoShow = r.status === "no-show";
+    await setStatusAsync(r.id, wasNoShow ? "confirmed" : "no-show");
+    if (!wasNoShow) sendCancellationEmail(r, "no-show");
+  };
+
+  const handleCancel = async (r: Reservation) => {
+    if (!confirm(`Cancel reservation for ${r.name}? This will email the guest.`)) return;
+    await setStatusAsync(r.id, "no-show");
+    sendCancellationEmail(r, "cancelled");
   };
 
   const dayList = useMemo(
@@ -325,7 +372,7 @@ const Admin = () => {
                     {r.status === "seated" ? "Unseat" : "Seat"}
                   </button>
                   <button
-                    onClick={() => setStatus(r.id, r.status === "no-show" ? "confirmed" : "no-show")}
+                    onClick={() => handleNoShow(r)}
                     className={`text-xs rounded-full px-3 py-1.5 border transition-colors ${
                       r.status === "no-show"
                         ? "bg-destructive/20 border-destructive/40 text-destructive"
@@ -334,6 +381,15 @@ const Admin = () => {
                   >
                     {r.status === "no-show" ? "Restore" : "No-show"}
                   </button>
+                  {r.status !== "no-show" && (
+                    <button
+                      onClick={() => handleCancel(r)}
+                      className="text-xs rounded-full border border-border px-3 py-1.5 hover:border-destructive/60 hover:text-destructive transition-colors"
+                      title={r.email ? "Cancel and email guest" : "Cancel (no email on file)"}
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
