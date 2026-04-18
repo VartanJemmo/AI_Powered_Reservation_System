@@ -155,6 +155,7 @@ export type Database = {
           reminder_sent_at: string | null
           reservation_date: string
           reservation_time: string
+          seating: string
           status: string
           updated_at: string
         }
@@ -170,6 +171,7 @@ export type Database = {
           reminder_sent_at?: string | null
           reservation_date: string
           reservation_time: string
+          seating?: string
           status?: string
           updated_at?: string
         }
@@ -185,6 +187,7 @@ export type Database = {
           reminder_sent_at?: string | null
           reservation_date?: string
           reservation_time?: string
+          seating?: string
           status?: string
           updated_at?: string
         }

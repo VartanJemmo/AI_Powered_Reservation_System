@@ -1,0 +1,1 @@
+ALTER TABLE public.reservations ADD COLUMN IF NOT EXISTS seating text NOT NULL DEFAULT 'indoor-non-smoking' CHECK (seating IN ('indoor-non-smoking', 'outdoor-smoking'));
