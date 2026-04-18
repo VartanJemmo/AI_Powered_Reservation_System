@@ -347,28 +347,58 @@ const Admin = () => {
               {trimmedQuery && (
                 <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-lg">
                   {searchSuggestions.length > 0 ? (
-                    <div className="max-h-72 overflow-y-auto">
+                    <div className="max-h-96 overflow-y-auto">
                       {searchSuggestions.map((r) => (
                         <button
-                          key={`${r.name}-${r.phone}-${r.email ?? "no-email"}`}
+                          key={r.id}
                           type="button"
                           onMouseDown={(e) => {
                             e.preventDefault();
-                            setQuery(r.name);
+                            setDate(r.date);
+                            setQuery("");
                           }}
-                          className="flex w-full items-start justify-between gap-3 border-t border-border/60 px-4 py-3 text-left transition-colors first:border-t-0 hover:bg-secondary/40"
+                          className="block w-full border-t border-border/60 px-4 py-3 text-left transition-colors first:border-t-0 hover:bg-secondary/40"
                         >
-                          <div className="min-w-0">
-                            <div className="font-medium text-foreground">{r.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {r.phone}
-                              {r.email ? ` · ${r.email}` : ""}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-medium text-foreground truncate">{r.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {r.phone}
+                                {r.email ? ` · ${r.email}` : ""}
+                              </div>
                             </div>
+                            <StatusPill status={r.status} />
                           </div>
-                          <div className="shrink-0 text-right text-[11px] uppercase tracking-widest text-muted-foreground">
-                            <div>{r.time}</div>
-                            <div>{r.date}</div>
+                          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 font-medium text-foreground">
+                              📅 {r.date}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 font-medium text-foreground">
+                              🕒 {r.time}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5">
+                              👥 {r.partySize}
+                            </span>
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
+                                r.seating === "outdoor-smoking"
+                                  ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                                  : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+                              }`}
+                            >
+                              {r.seating === "outdoor-smoking" ? "🌿 Outdoor" : "🏠 Indoor"}
+                            </span>
+                            {r.tableId && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary">
+                                Table {r.tableId}
+                              </span>
+                            )}
                           </div>
+                          {r.notes && (
+                            <div className="mt-1.5 text-[11px] text-muted-foreground italic truncate">
+                              "{r.notes}"
+                            </div>
+                          )}
                         </button>
                       ))}
                     </div>
