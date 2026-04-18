@@ -10,6 +10,7 @@ import {
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
