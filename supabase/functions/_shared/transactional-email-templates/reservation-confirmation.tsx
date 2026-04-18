@@ -103,6 +103,12 @@ const ReservationConfirmationEmail = ({
             <Text style={cardValue}>
               {partySize ? `${partySize} ${partySize === 1 ? 'guest' : 'guests'}` : '—'}
             </Text>
+            {seatingText && (
+              <>
+                <Text style={cardLabel}>Seating</Text>
+                <Text style={cardValue}>{seatingText}</Text>
+              </>
+            )}
             {deposit && (
               <>
                 <Text style={cardLabel}>Deposit</Text>
@@ -147,6 +153,8 @@ export const template = {
     partySize: 4,
     deposit: true,
     notes: 'Window table if possible — celebrating an anniversary.',
+    seating: 'indoor-non-smoking',
+    seatingLabel: 'Indoor · Non-smoking',
     status: 'confirmed',
   },
 } satisfies TemplateEntry
