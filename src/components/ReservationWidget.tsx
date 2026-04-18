@@ -10,6 +10,7 @@ import {
   type SlotInfo,
 } from "@/lib/reservations";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 type Step = 1 | 2 | 3 | 4;
 
