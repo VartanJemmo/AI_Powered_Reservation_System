@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * AmbientLayer — site-wide effects:
- *  - Soft gold dust trail following the cursor (canvas, GPU-cheap)
+ * AmbientLayer — site-wide ambience:
  *  - Floating "Sound" toggle that plays a subtle synthesized oud-flavored
- *    ambience using the Web Audio API. No external audio files; gentle by
- *    default, can be muted at any time.
- *
- * Disabled on touch devices (no cursor) and respects prefers-reduced-motion.
+ *    ambience using the Web Audio API. No external audio files.
  */
 export const AmbientLayer = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [soundOn, setSoundOn] = useState(false);
   const audioRef = useRef<{
     ctx: AudioContext;
