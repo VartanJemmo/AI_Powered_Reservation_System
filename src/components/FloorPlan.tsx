@@ -524,7 +524,31 @@ export const FloorPlan = () => {
           <div className="flex items-baseline justify-between flex-wrap gap-2">
             <div className="text-[10px] uppercase tracking-[0.2em] text-primary/90">Check availability</div>
             <div className="text-xs text-muted-foreground">
-              <span className="text-emerald-400">{availableCount}</span> of {TABLES.length} tables free · {formatDateLong(date)} · {time}
+              <span className="text-emerald-400">{TABLES.filter((t) => t.seats >= party && !bookedSet.has(t.id)).length}</span> of {TABLES.length} tables fit {party} · {formatDateLong(date)} · {time}
+            </div>
+          </div>
+
+          {/* Party size */}
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-primary/90">Party size</div>
+            <div className="flex gap-1.5 flex-wrap">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
+                const active = party === n;
+                return (
+                  <button
+                    key={n}
+                    onClick={() => setParty(n)}
+                    className={`h-9 w-9 rounded-full border text-xs font-display transition-all ${
+                      active
+                        ? "bg-gradient-gold text-primary-foreground border-transparent shadow-gold"
+                        : "border-border bg-secondary/40 hover:border-primary/40"
+                    }`}
+                    aria-label={`${n} guests`}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
@@ -602,6 +626,7 @@ export const FloorPlan = () => {
                   hovered={hovered}
                   selected={selected}
                   bookedSet={bookedSet}
+                  party={party}
                   setHovered={setHovered}
                   onPick={handlePick}
                 />
