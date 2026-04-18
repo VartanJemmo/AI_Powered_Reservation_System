@@ -103,8 +103,7 @@ const Admin = () => {
   }, [dayList, slots.length]);
 
   const setStatus = (id: string, s: Reservation["status"]) => {
-    updateReservationStatus(id, s);
-    setTick((t) => t + 1);
+    setStatusAsync(id, s);
   };
 
   const peakSlot = slots.reduce((a, b) => (b.bookedCovers > a.bookedCovers ? b : a), slots[0]);
