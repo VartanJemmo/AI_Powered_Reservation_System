@@ -12,9 +12,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Dry-run mode: when true, no real email is sent, but each candidate
-// reminder is recorded in the reminder_log table with status = 'dry-run'.
-const DRY_RUN = true;
+// When true, no real email is sent — each candidate is just logged with
+// status = 'dry-run'. Flip to false to actually dispatch via the
+// send-transactional-email edge function (Lovable Emails).
+const DRY_RUN = false;
 
 // Reminder window: how far before the reservation we consider it "due".
 // We aim for ~2 hours before, with a tolerance window because the cron
@@ -105,9 +106,69 @@ Deno.serve(async (req) => {
 
       results.push({ id: r.id, status: recipient ? "dry-run" : "skipped", recipient });
     } else {
-      // Real send path — wired up once a verified email domain exists.
-      // Will invoke send-transactional-email here.
-      results.push({ id: r.id, status: "real-send-not-configured", recipient });
+      // Real send via Lovable Emails (send-transactional-email).
+      if (!recipient) {
+        await supabase.from("reminder_log").insert({
+          reservation_id: r.id,
+          recipient_email: null,
+          status: "skipped",
+          channel: "email",
+          error_message: "No email on reservation",
+          payload,
+        });
+        await supabase
+          .from("reservations")
+          .update({ reminder_sent_at: new Date().toISOString() })
+          .eq("id", r.id);
+        results.push({ id: r.id, status: "skipped", recipient: null });
+        continue;
+      }
+
+      const { error: invokeErr } = await supabase.functions.invoke(
+        "send-transactional-email",
+        {
+          body: {
+            templateName: "reservation-reminder",
+            recipientEmail: recipient,
+            idempotencyKey: `reservation-reminder-${r.id}`,
+            templateData: {
+              name: r.name,
+              date: r.reservation_date,
+              time: r.reservation_time,
+              partySize: r.party_size,
+            },
+          },
+        },
+      );
+
+      if (invokeErr) {
+        console.error("send-transactional-email failed:", invokeErr);
+        await supabase.from("reminder_log").insert({
+          reservation_id: r.id,
+          recipient_email: recipient,
+          status: "failed",
+          channel: "email",
+          error_message: invokeErr.message ?? String(invokeErr),
+          payload,
+        });
+        results.push({ id: r.id, status: "failed", recipient });
+        // Do NOT mark reminder_sent_at so the next cron run retries.
+        continue;
+      }
+
+      await supabase.from("reminder_log").insert({
+        reservation_id: r.id,
+        recipient_email: recipient,
+        status: "sent",
+        channel: "email",
+        error_message: null,
+        payload,
+      });
+      await supabase
+        .from("reservations")
+        .update({ reminder_sent_at: new Date().toISOString() })
+        .eq("id", r.id);
+      results.push({ id: r.id, status: "sent", recipient });
     }
   }
 
