@@ -14,8 +14,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { TablePicker } from "./TablePicker";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const partyOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -62,7 +63,7 @@ export const ReservationWidget = () => {
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
         if (parsed.seats) setParty(Math.min(parsed.seats, 8));
-        setStep(3);
+        setStep(4);
         sessionStorage.removeItem("mayrig.preselected-table");
         return;
       } catch (e) {
@@ -109,7 +110,7 @@ export const ReservationWidget = () => {
     if (time && !slots.find((s) => s.time === time && s.status !== "full")) setTime(null);
   }, [slots, time]);
 
-  const goNext = () => setStep((s) => Math.min(4, s + 1) as Step);
+  const goNext = () => setStep((s) => Math.min(5, s + 1) as Step);
   const goBack = () => setStep((s) => Math.max(1, s - 1) as Step);
 
   const submit = async (asWaitlist = false) => {
