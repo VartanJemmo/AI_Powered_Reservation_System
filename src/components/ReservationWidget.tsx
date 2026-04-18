@@ -440,7 +440,7 @@ export const ReservationWidget = () => {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="animate-fade-in">
                 <Label>Confirm your reservation</Label>
                 <div className="mt-4 rounded-xl border border-border bg-secondary/40 p-5 space-y-3 text-sm">
