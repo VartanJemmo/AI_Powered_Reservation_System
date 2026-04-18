@@ -466,6 +466,11 @@ export const FloorPlan = () => {
       toast.error(`Table ${id} is booked at ${time}. Try another time or table.`);
       return;
     }
+    const t = TABLES.find((x) => x.id === id);
+    if (t && t.seats < party) {
+      toast.error(`Table ${id} only seats ${t.seats}. Pick a larger table or reduce party size.`);
+      return;
+    }
     setSelected(id);
   };
 
