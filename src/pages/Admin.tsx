@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
-  refreshReservations, subscribeReservations,
+  refreshReservations, SEATING_LABELS, subscribeReservations,
   SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationStatus,
   type ReminderLogEntry, type Reservation,
 } from "@/lib/reservations";
@@ -294,7 +294,19 @@ const Admin = () => {
               >
                 <div className="font-medium font-display text-lg lg:text-base">{r.time}</div>
                 <div>
-                  <div className="font-medium">{r.name}</div>
+                  <div className="font-medium flex items-center gap-2 flex-wrap">
+                    {r.name}
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-widest ${
+                        r.seating === "outdoor-smoking"
+                          ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                          : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+                      }`}
+                      title={SEATING_LABELS[r.seating]}
+                    >
+                      {r.seating === "outdoor-smoking" ? "🌿 Outdoor · Smoking" : "🏠 Indoor · Non-smoking"}
+                    </span>
+                  </div>
                   {r.notes && <div className="text-xs text-muted-foreground mt-0.5 italic">"{r.notes}"</div>}
                 </div>
                 <div>
