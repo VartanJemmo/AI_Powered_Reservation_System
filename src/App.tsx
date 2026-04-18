@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Confirmation from "./pages/Confirmation.tsx";
 import Admin from "./pages/Admin.tsx";
 import Login from "./pages/Login.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 import { AuthProvider } from "@/lib/auth";
 import { RequireAuth } from "@/components/RequireAuth";
 
@@ -22,6 +23,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
             <Route path="/confirmation/:id" element={<RequireAuth><Confirmation /></RequireAuth>} />
             <Route path="/admin" element={<RequireAuth role="admin"><Admin /></RequireAuth>} />
