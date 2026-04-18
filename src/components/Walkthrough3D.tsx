@@ -407,7 +407,7 @@ export const Walkthrough3D = () => {
       aria-label="3D restaurant walkthrough"
       className="relative py-20 sm:py-28 bg-gradient-to-b from-background via-surface/40 to-background"
     >
-      <div className="container-narrow">
+      <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl">
           <span className="eyebrow"><span className="gold-divider" /> Step inside</span>
           <h2 className="mt-3 font-display text-3xl sm:text-4xl">Walk through Mayrig</h2>
@@ -416,7 +416,7 @@ export const Walkthrough3D = () => {
           </p>
         </div>
 
-        <div className="mt-8 relative w-full aspect-video rounded-2xl overflow-hidden border border-border shadow-elev bg-black">
+        <div className="mt-8 relative w-full h-[70vh] min-h-[480px] max-h-[860px] rounded-2xl overflow-hidden border border-border shadow-elev bg-black">
           <Canvas shadows camera={{ fov: 70, near: 0.1, far: 100 }} dpr={[1, 1.5]}>
             <Suspense fallback={<Html center><span className="text-primary text-xs">Lighting candles…</span></Html>}>
               <RestaurantScene />
