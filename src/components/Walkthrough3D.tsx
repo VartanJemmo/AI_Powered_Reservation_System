@@ -71,19 +71,19 @@ const Player = ({ touchDir }: { touchDir: React.MutableRefObject<{ x: number; y:
 const Floor = () => (
   <mesh rotation-x={-Math.PI / 2} receiveShadow>
     <planeGeometry args={[ROOM.w, ROOM.d]} />
-    <meshStandardMaterial color="#1a0f08" roughness={0.85} metalness={0.05} />
+    <meshStandardMaterial color="#3a2416" roughness={0.8} metalness={0.05} />
   </mesh>
 );
 
 const Ceiling = () => (
   <mesh position={[0, ROOM.h, 0]} rotation-x={Math.PI / 2}>
-    <planeGeometry args={[ROOM.w, ROOM.d]} />
-    <meshStandardMaterial color="#0a0604" roughness={1} />
+    <planeGeometry args={[ROOM.w, ROOM.h]} />
+    <meshStandardMaterial color="#1a120a" roughness={1} />
   </mesh>
 );
 
 const Walls = () => {
-  const wallMat = <meshStandardMaterial color="#2b1a10" roughness={0.9} />;
+  const wallMat = <meshStandardMaterial color="#5a3a22" roughness={0.85} />;
   return (
     <group>
       <mesh position={[0, ROOM.h / 2, -ROOM.d / 2]}>
@@ -383,9 +383,10 @@ const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; s
 
   return (
     <>
-      <fog attach="fog" args={["#0a0604", 6, 30]} />
-      <ambientLight intensity={0.18} color="#ffb066" />
-      <hemisphereLight args={["#3a2114", "#0a0604", 0.25]} />
+      <fog attach="fog" args={["#1a0f08", 18, 55]} />
+      <ambientLight intensity={0.85} color="#ffd9a8" />
+      <hemisphereLight args={["#ffc987", "#3a2114", 0.7]} />
+      <directionalLight position={[0, 8, 0]} intensity={0.4} color="#ffd9a8" />
       <Floor />
       <Ceiling />
       <Walls />
