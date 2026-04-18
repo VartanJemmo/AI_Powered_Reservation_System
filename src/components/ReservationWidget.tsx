@@ -509,7 +509,7 @@ const SummaryRow = ({ k, v }: { k: string; v: React.ReactNode }) => (
 );
 
 const Stepper = ({ step }: { step: Step }) => {
-  const labels = ["Date & party", "Time", "Details", "Confirm"];
+  const labels = ["Date & party", "Time", "Table", "Details", "Confirm"];
   return (
     <div className="flex items-center gap-2 px-5 sm:px-7 pt-5">
       {labels.map((l, i) => {
