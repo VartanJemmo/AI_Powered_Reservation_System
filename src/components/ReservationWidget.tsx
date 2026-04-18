@@ -338,6 +338,34 @@ export const ReservationWidget = () => {
             )}
 
             {step === 3 && (
+              <div className="animate-fade-in">
+                <div className="flex items-baseline justify-between flex-wrap gap-2">
+                  <Label>Choose your table</Label>
+                  <p className="text-xs text-muted-foreground">Optional — pick where you'd like to sit</p>
+                </div>
+                <div className="mt-4">
+                  {time ? (
+                    <TablePicker
+                      date={date}
+                      time={time}
+                      party={party}
+                      selected={tableId}
+                      onSelect={setTableId}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Pick a time first.</p>
+                  )}
+                </div>
+                <Footer
+                  onBack={goBack}
+                  onNext={goNext}
+                  nextLabel="Continue"
+                  hint={tableId ? `Table ${tableId} reserved for you` : "No specific table — best one will be assigned"}
+                />
+              </div>
+            )}
+
+            {step === 4 && (
               <div className="animate-fade-in space-y-4">
                 <Label>Your details</Label>
                 <Field label="Full name" value={name} onChange={setName} placeholder="Anna Mardirossian" required />
