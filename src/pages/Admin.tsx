@@ -342,4 +342,91 @@ const StatusPill = ({ status }: { status: Reservation["status"] }) => {
   );
 };
 
+const GuestOrdersPanel = ({ tick }: { tick: number }) => {
+  const orders = useMemo<GuestOrder[]>(() => getAllOrders(), [tick]);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <div className="mt-12">
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="font-display text-xl">
+          Guest orders
+          <span className="text-muted-foreground text-sm font-sans ml-2">({orders.length})</span>
+        </h2>
+        <p className="text-xs text-muted-foreground">Saved selections by guest profile</p>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-border overflow-hidden">
+        {orders.length === 0 && (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            No saved orders yet.
+          </div>
+        )}
+        {orders.map((o) => {
+          const isOpen = openId === o.id;
+          const counts = o.items.reduce(
+            (acc, it) => {
+              acc[it.category] = (acc[it.category] ?? 0) + it.qty;
+              return acc;
+            },
+            {} as Record<string, number>
+          );
+          return (
+            <div key={o.id} className="border-t border-border first:border-t-0">
+              <button
+                onClick={() => setOpenId(isOpen ? null : o.id)}
+                className="w-full grid grid-cols-[1.4fr_1fr_auto_auto] gap-3 px-4 lg:px-5 py-4 items-center text-sm hover:bg-secondary/30 transition-colors text-left"
+              >
+                <div>
+                  <div className="font-medium">{o.guestName}</div>
+                  <div className="text-xs text-muted-foreground">{o.guestEmail}</div>
+                </div>
+                <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
+                  {(["food", "drinks", "desserts"] as const).map((c) =>
+                    counts[c] ? (
+                      <span
+                        key={c}
+                        className="inline-flex items-center gap-1 rounded-full bg-secondary border border-border px-2 py-0.5 capitalize"
+                      >
+                        {c} · {counts[c]}
+                      </span>
+                    ) : null
+                  )}
+                </div>
+                <div className="font-display text-lg gold-text">{formatPrice(o.total)}</div>
+                <div className="text-xs text-muted-foreground">{isOpen ? "▲" : "▼"}</div>
+              </button>
+              {isOpen && (
+                <div className="px-4 lg:px-5 pb-5 -mt-2">
+                  <div className="rounded-xl border border-border bg-secondary/30 divide-y divide-border/60">
+                    {o.items.map((it) => (
+                      <div
+                        key={it.itemId}
+                        className="flex items-center justify-between px-4 py-2.5 text-sm"
+                      >
+                        <div>
+                          <div>{it.name}</div>
+                          <div className="text-xs text-muted-foreground capitalize">
+                            {it.category} · {formatPrice(it.price)} × {it.qty}
+                          </div>
+                        </div>
+                        <div className="font-medium">{formatPrice(it.price * it.qty)}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Last updated {new Date(o.updatedAt).toLocaleString()}
+                    {o.guestPhone ? ` · ${o.guestPhone}` : ""}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default Admin;
+
