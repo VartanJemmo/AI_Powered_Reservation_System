@@ -379,7 +379,6 @@ const Admin = () => {
               )}
             </div>
           </div>
-          </div>
 
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Stat k="Bookings" v={String(totals.count)} />
