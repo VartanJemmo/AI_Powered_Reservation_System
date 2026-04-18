@@ -19,6 +19,18 @@ interface ReservationReminderProps {
   date?: string
   time?: string
   partySize?: number
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking'
+  seatingLabel?: string
+}
+
+const seatingDisplay = (
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking',
+  seatingLabel?: string,
+) => {
+  if (seatingLabel) return seatingLabel
+  if (seating === 'outdoor-smoking') return 'Outdoor · Smoking'
+  if (seating === 'indoor-non-smoking') return 'Indoor · Non-smoking'
+  return ''
 }
 
 const formatDate = (date?: string) => {
@@ -40,7 +52,11 @@ const ReservationReminderEmail = ({
   date,
   time,
   partySize,
-}: ReservationReminderProps) => (
+  seating,
+  seatingLabel,
+}: ReservationReminderProps) => {
+  const seatingText = seatingDisplay(seating, seatingLabel)
+  return (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>
@@ -67,6 +83,12 @@ const ReservationReminderEmail = ({
           <Text style={cardValue}>
             {partySize ? `${partySize} ${partySize === 1 ? 'guest' : 'guests'}` : '—'}
           </Text>
+          {seatingText && (
+            <>
+              <Text style={cardLabel}>Seating</Text>
+              <Text style={cardValue}>{seatingText}</Text>
+            </>
+          )}
         </Section>
 
         <Text style={text}>
@@ -78,7 +100,8 @@ const ReservationReminderEmail = ({
       </Container>
     </Body>
   </Html>
-)
+  )
+}
 
 export const template = {
   component: ReservationReminderEmail,
@@ -90,6 +113,8 @@ export const template = {
     date: '2026-04-20',
     time: '19:30',
     partySize: 4,
+    seating: 'outdoor-smoking',
+    seatingLabel: 'Outdoor · Smoking',
   },
 } satisfies TemplateEntry
 
