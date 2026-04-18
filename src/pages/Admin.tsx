@@ -167,17 +167,36 @@ const Admin = () => {
             <Logo />
             <span className="hidden sm:inline text-xs uppercase tracking-widest text-muted-foreground">/ Admin</span>
           </Link>
+
+          <nav className="flex items-center gap-1 rounded-full border border-border bg-secondary/40 p-1">
+            {(["reservations", "feedback"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`text-xs uppercase tracking-widest rounded-full px-4 py-1.5 transition-colors ${
+                  tab === t
+                    ? "bg-gradient-gold text-primary-foreground shadow-gold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </nav>
+
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live
             </div>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-9 rounded-lg border border-border bg-input/60 px-3 text-sm"
-            />
+            {tab === "reservations" && (
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="h-9 rounded-lg border border-border bg-input/60 px-3 text-sm"
+              />
+            )}
             <button
               onClick={handleLogout}
               className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-border bg-secondary/40 px-3 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
@@ -192,6 +211,11 @@ const Admin = () => {
         </div>
       </header>
 
+      {tab === "feedback" ? (
+        <div className="container-wide py-8">
+          <FeedbackPanel />
+        </div>
+      ) : (
       <div className="container-wide py-8 grid lg:grid-cols-[280px_1fr] gap-8">
         {/* Sidebar */}
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
