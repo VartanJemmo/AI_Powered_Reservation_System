@@ -305,6 +305,37 @@ export const ReservationWidget = () => {
                 <Field label="Email (optional)" value={email} onChange={setEmail} placeholder="you@example.com" type="email" />
                 <Field label="Special requests (optional)" value={notes} onChange={setNotes} placeholder="Allergies, occasion…" textarea />
 
+                <div className="mt-2">
+                  <Label>Seating preference</Label>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(["indoor-non-smoking", "outdoor-smoking"] as Seating[]).map((opt) => {
+                      const active = seating === opt;
+                      const isIndoor = opt === "indoor-non-smoking";
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setSeating(opt)}
+                          aria-pressed={active}
+                          className={`text-left rounded-xl border px-4 py-3 transition-all ${
+                            active
+                              ? "bg-primary/10 border-primary text-foreground"
+                              : "border-border bg-secondary/40 hover:border-primary/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <span aria-hidden>{isIndoor ? "🏠" : "🌿"}</span>
+                            {isIndoor ? "Indoor" : "Outdoor"}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {isIndoor ? "Non-smoking" : "Smoking allowed"}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div className="mt-4 flex items-start gap-3 rounded-xl border border-border bg-secondary/40 p-4">
                   <button
                     type="button"
@@ -352,6 +383,7 @@ export const ReservationWidget = () => {
                   <Row k="Phone" v={phone} />
                   {email && <Row k="Email" v={email} />}
                   {notes && <Row k="Notes" v={notes} />}
+                  <Row k="Seating" v={SEATING_LABELS[seating]} />
                   <Row k="Deposit" v={deposit ? "Yes — $10/guest" : "No"} />
                 </div>
 
