@@ -327,6 +327,8 @@ const Admin = () => {
             ))}
           </div>
 
+          <RemindersPanel tick={tick} />
+
           <GuestOrdersPanel tick={tick} />
         </section>
       </div>
