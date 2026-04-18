@@ -14,8 +14,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { TablePicker } from "./TablePicker";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const partyOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -62,7 +63,7 @@ export const ReservationWidget = () => {
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
         if (parsed.seats) setParty(Math.min(parsed.seats, 8));
-        setStep(3);
+        setStep(4);
         sessionStorage.removeItem("mayrig.preselected-table");
         return;
       } catch (e) {
@@ -109,7 +110,7 @@ export const ReservationWidget = () => {
     if (time && !slots.find((s) => s.time === time && s.status !== "full")) setTime(null);
   }, [slots, time]);
 
-  const goNext = () => setStep((s) => Math.min(4, s + 1) as Step);
+  const goNext = () => setStep((s) => Math.min(5, s + 1) as Step);
   const goBack = () => setStep((s) => Math.max(1, s - 1) as Step);
 
   const submit = async (asWaitlist = false) => {
@@ -337,6 +338,34 @@ export const ReservationWidget = () => {
             )}
 
             {step === 3 && (
+              <div className="animate-fade-in">
+                <div className="flex items-baseline justify-between flex-wrap gap-2">
+                  <Label>Choose your table</Label>
+                  <p className="text-xs text-muted-foreground">Optional — pick where you'd like to sit</p>
+                </div>
+                <div className="mt-4">
+                  {time ? (
+                    <TablePicker
+                      date={date}
+                      time={time}
+                      party={party}
+                      selected={tableId}
+                      onSelect={setTableId}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Pick a time first.</p>
+                  )}
+                </div>
+                <Footer
+                  onBack={goBack}
+                  onNext={goNext}
+                  nextLabel="Continue"
+                  hint={tableId ? `Table ${tableId} reserved for you` : "No specific table — best one will be assigned"}
+                />
+              </div>
+            )}
+
+            {step === 4 && (
               <div className="animate-fade-in space-y-4">
                 <Label>Your details</Label>
                 <Field label="Full name" value={name} onChange={setName} placeholder="Anna Mardirossian" required />
@@ -411,7 +440,7 @@ export const ReservationWidget = () => {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="animate-fade-in">
                 <Label>Confirm your reservation</Label>
                 <div className="mt-4 rounded-xl border border-border bg-secondary/40 p-5 space-y-3 text-sm">
@@ -480,7 +509,7 @@ const SummaryRow = ({ k, v }: { k: string; v: React.ReactNode }) => (
 );
 
 const Stepper = ({ step }: { step: Step }) => {
-  const labels = ["Date & party", "Time", "Details", "Confirm"];
+  const labels = ["Date & party", "Time", "Table", "Details", "Confirm"];
   return (
     <div className="flex items-center gap-2 px-5 sm:px-7 pt-5">
       {labels.map((l, i) => {
