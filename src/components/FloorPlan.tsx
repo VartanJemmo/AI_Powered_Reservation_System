@@ -334,7 +334,28 @@ export const FloorPlan = () => {
           </p>
         </div>
 
-        <div className="mt-10 grid sm:grid-cols-3 gap-3 text-xs">
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-primary/90">Maximum capacity</div>
+            <div className="font-display text-3xl sm:text-4xl text-foreground">140 guests</div>
+          </div>
+          <div className="flex-1 min-w-[200px] grid grid-cols-3 gap-3 text-xs">
+            <div className="text-center">
+              <div className="font-display text-xl text-primary">80</div>
+              <div className="text-muted-foreground uppercase tracking-widest text-[10px] mt-0.5">Round</div>
+            </div>
+            <div className="text-center">
+              <div className="font-display text-xl text-primary">44</div>
+              <div className="text-muted-foreground uppercase tracking-widest text-[10px] mt-0.5">Banquet</div>
+            </div>
+            <div className="text-center">
+              <div className="font-display text-xl text-primary">16</div>
+              <div className="text-muted-foreground uppercase tracking-widest text-[10px] mt-0.5">Bar</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs">
           <div className="rounded-lg border border-border bg-surface/50 p-4">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-primary/80" />
