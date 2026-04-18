@@ -489,9 +489,7 @@ const Admin = () => {
                   {r.notes && <div className="text-xs text-muted-foreground mt-0.5 italic">"{r.notes}"</div>}
                 </div>
                 <div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary border border-border px-2 py-0.5 text-xs">
-                    👥 {r.partySize}
-                  </span>
+                  <PartySizeStepper reservation={r} />
                 </div>
                 <div className="text-muted-foreground text-xs lg:text-sm">{r.phone}</div>
                 <div className="text-muted-foreground text-xs lg:text-sm truncate">{r.email ?? "—"}</div>
