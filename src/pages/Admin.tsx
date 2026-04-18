@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  deleteReservation,
   fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
   refreshReservations, SEATING_LABELS, subscribeReservations,
-  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationPartySize, updateReservationStatus,
-  type ReminderLogEntry, type Reservation,
+  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservation, updateReservationPartySize, updateReservationStatus,
+  type ReminderLogEntry, type Reservation, type Seating,
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
