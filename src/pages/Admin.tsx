@@ -369,7 +369,11 @@ const Admin = () => {
 
             {filtered.length === 0 && (
               <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                {dayList.length === 0 ? "No bookings for this date." : "No bookings match your filters."}
+                {query.trim()
+                  ? `No bookings match “${query.trim()}”.`
+                  : dayList.length === 0
+                  ? "No bookings for this date."
+                  : "No bookings match your filters."}
               </div>
             )}
 
@@ -378,7 +382,14 @@ const Admin = () => {
                 key={r.id}
                 className="grid lg:grid-cols-[80px_1.4fr_70px_160px_180px_120px_220px] gap-3 px-4 lg:px-5 py-4 border-t border-border items-center text-sm hover:bg-secondary/30 transition-colors"
               >
-                <div className="font-medium font-display text-lg lg:text-base">{r.time}</div>
+                <div className="font-medium font-display text-lg lg:text-base">
+                  {r.time}
+                  {query.trim() && r.date !== date && (
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-sans font-normal mt-0.5">
+                      {r.date}
+                    </div>
+                  )}
+                </div>
                 <div>
                   <div className="font-medium flex items-center gap-2 flex-wrap">
                     {r.name}
