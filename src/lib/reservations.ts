@@ -231,7 +231,7 @@ export async function updateReservation(
   if (Object.keys(update).length === 0) return cache.find((r) => r.id === id);
   const { data, error } = await supabase
     .from("reservations")
-    .update(update)
+    .update(update as never)
     .eq("id", id)
     .select("*")
     .single();
