@@ -3,6 +3,8 @@
 // can see them. The same shape is preserved so existing UI keeps working.
 import { supabase } from "@/integrations/supabase/client";
 
+export type Seating = "indoor-non-smoking" | "outdoor-smoking";
+
 export type Reservation = {
   id: string;
   date: string; // yyyy-mm-dd
@@ -13,8 +15,14 @@ export type Reservation = {
   email?: string;
   deposit: boolean;
   notes?: string;
+  seating: Seating;
   status: "confirmed" | "no-show" | "seated" | "waitlist";
   createdAt: string;
+};
+
+export const SEATING_LABELS: Record<Seating, string> = {
+  "indoor-non-smoking": "Indoor · Non-smoking",
+  "outdoor-smoking": "Outdoor · Smoking",
 };
 
 const SLOT_CAPACITY = 12;
@@ -53,6 +61,7 @@ type Row = {
   reservation_time: string;
   deposit: boolean;
   notes: string | null;
+  seating: Seating;
   status: Reservation["status"];
   created_at: string;
 };
@@ -68,6 +77,7 @@ function rowToReservation(r: Row): Reservation {
     email: r.email ?? undefined,
     deposit: r.deposit,
     notes: r.notes ?? undefined,
+    seating: (r.seating ?? "indoor-non-smoking") as Seating,
     status: r.status,
     createdAt: r.created_at,
   };
@@ -137,6 +147,7 @@ export async function createReservation(
     reservation_time: input.time,
     deposit: input.deposit,
     notes: input.notes ?? null,
+    seating: input.seating,
     status: input.status ?? "confirmed",
   };
   const { data, error } = await supabase
