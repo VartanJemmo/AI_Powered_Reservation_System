@@ -542,6 +542,49 @@ const Stat = ({ k, v, accent }: { k: string; v: string; accent?: "destructive" }
   </div>
 );
 
+const PartySizeStepper = ({ reservation }: { reservation: Reservation }) => {
+  const [busy, setBusy] = useState(false);
+
+  const change = async (delta: number) => {
+    const next = reservation.partySize + delta;
+    if (next < 1 || next > 20 || busy) return;
+    setBusy(true);
+    try {
+      await updateReservationPartySize(reservation.id, next);
+      toast.success(`Party size updated to ${next}.`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not update party size.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full bg-secondary border border-border px-1.5 py-0.5 text-xs">
+      <button
+        type="button"
+        onClick={() => change(-1)}
+        disabled={busy || reservation.partySize <= 1}
+        aria-label="Decrease party size"
+        className="h-5 w-5 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        −
+      </button>
+      <span className="min-w-[2ch] text-center font-medium">👥 {reservation.partySize}</span>
+      <button
+        type="button"
+        onClick={() => change(1)}
+        disabled={busy || reservation.partySize >= 20}
+        aria-label="Increase party size"
+        className="h-5 w-5 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        +
+      </button>
+    </div>
+  );
+};
+
 const StatusPill = ({ status }: { status: Reservation["status"] }) => {
   const map: Record<Reservation["status"], string> = {
     confirmed: "bg-primary/15 text-primary border-primary/30",
