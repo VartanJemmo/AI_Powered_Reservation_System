@@ -101,6 +101,8 @@ const Table = ({
   hovered,
   selected,
   booked,
+  tooSmall,
+  bestFit,
   onHover,
   onClick,
 }: {
@@ -108,6 +110,8 @@ const Table = ({
   hovered: boolean;
   selected: boolean;
   booked: boolean;
+  tooSmall: boolean;
+  bestFit: boolean;
   onHover: (id: string | null) => void;
   onClick: (id: string) => void;
 }) => {
@@ -116,15 +120,15 @@ const Table = ({
 
   useFrame(() => {
     if (groupRef.current) {
-      const targetY = (hovered || selected) && !booked ? 0.1 : 0;
+      const targetY = (hovered || selected) && !booked && !tooSmall ? 0.1 : 0;
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.12);
     }
   });
 
   // Status ring color
-  const statusColor = booked ? RED : selected ? GOLD : GREEN;
-  const ringEmissive = booked ? RED : selected ? GOLD_GLOW : GREEN;
-  const topColor = booked ? "#3a1f1a" : selected ? "#5a4220" : WOOD;
+  const statusColor = booked ? RED : selected ? GOLD : tooSmall ? "#3a3a3a" : bestFit ? GOLD : GREEN;
+  const ringEmissive = booked ? RED : selected ? GOLD_GLOW : tooSmall ? "#000000" : bestFit ? GOLD_GLOW : GREEN;
+  const topColor = booked ? "#3a1f1a" : selected ? "#5a4220" : tooSmall ? "#1f1812" : WOOD;
 
   const renderTop = () => {
     if (type === "round") {
@@ -215,11 +219,11 @@ const Table = ({
     <group
       ref={groupRef}
       position={position}
-      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = booked ? "not-allowed" : "pointer"; }}
+      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = booked || tooSmall ? "not-allowed" : "pointer"; }}
       onPointerOut={() => { onHover(null); document.body.style.cursor = "default"; }}
       onClick={(e) => { e.stopPropagation(); onClick(id); }}
     >
-      {/* Floor disc — green available, red booked, gold selected */}
+      {/* Floor disc — green available, red booked, gold selected/best-fit, dim too-small */}
       <mesh position={[0, discY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         {type === "rect" ? (
           <planeGeometry args={[1.6, 2.4]} />
@@ -229,30 +233,42 @@ const Table = ({
         <meshStandardMaterial
           color={statusColor}
           emissive={ringEmissive}
-          emissiveIntensity={selected ? 0.6 : hovered ? 0.4 : 0.25}
+          emissiveIntensity={selected ? 0.7 : bestFit ? 0.5 : hovered ? 0.4 : tooSmall ? 0 : 0.25}
           transparent
-          opacity={selected ? 0.55 : 0.32}
+          opacity={tooSmall ? 0.12 : selected ? 0.6 : bestFit ? 0.45 : 0.32}
         />
       </mesh>
 
-      {renderTop()}
-      {renderLeg()}
-      {renderChairs()}
-      {(type === "round" || type === "rect") && !booked && <Candle position={[0, 0.77, 0]} />}
-      {type === "rect" && !booked && <Candle position={[0, 0.77, -0.5]} />}
-      {type === "rect" && !booked && <Candle position={[0, 0.77, 0.5]} />}
+      <group scale={tooSmall ? 0.92 : 1}>
+        {renderTop()}
+        {renderLeg()}
+        {renderChairs()}
+        {(type === "round" || type === "rect") && !booked && !tooSmall && <Candle position={[0, 0.77, 0]} />}
+        {type === "rect" && !booked && !tooSmall && <Candle position={[0, 0.77, -0.5]} />}
+        {type === "rect" && !booked && !tooSmall && <Candle position={[0, 0.77, 0.5]} />}
+      </group>
 
       {(hovered || selected) && (
         <Html position={[0, type === "bar" ? 1.6 : 1.4, 0]} center distanceFactor={10}>
           <div className={`pointer-events-none rounded-md border backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap ${
-            booked ? "border-destructive/60 bg-background/90" : selected ? "border-primary bg-primary/20" : "border-primary/60 bg-background/90"
+            booked ? "border-destructive/60 bg-background/90" :
+            tooSmall ? "border-muted bg-background/90" :
+            selected ? "border-primary bg-primary/20" :
+            bestFit ? "border-primary bg-background/90" :
+            "border-primary/60 bg-background/90"
           }`}>
             <div className="font-display text-primary text-sm">Table {id}</div>
             <div className="text-muted-foreground uppercase tracking-widest text-[10px]">
               {type === "bar" ? "Bar high" : type === "round" ? "Round" : "Banquet"} · {seats} seats
             </div>
-            <div className={`uppercase tracking-widest text-[10px] mt-0.5 ${booked ? "text-destructive" : selected ? "text-primary" : "text-emerald-400"}`}>
-              {booked ? "Booked" : selected ? "Selected" : "Available"}
+            <div className={`uppercase tracking-widest text-[10px] mt-0.5 ${
+              booked ? "text-destructive" :
+              tooSmall ? "text-muted-foreground" :
+              selected ? "text-primary" :
+              bestFit ? "text-primary" :
+              "text-emerald-400"
+            }`}>
+              {booked ? "Booked" : tooSmall ? "Too small" : selected ? "Selected" : bestFit ? "Best fit ★" : "Available"}
             </div>
           </div>
         </Html>
