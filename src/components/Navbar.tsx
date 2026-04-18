@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
+import { useAuth } from "@/lib/auth";
 
 const links = [
   { href: "#about", label: "About" },
@@ -9,12 +10,21 @@ const links = [
 ];
 
 export const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   const scrollToReserve = () => {
     document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <header className="fixed inset-x-0 top-0 z-40 backdrop-blur-md bg-background/60 border-b border-border/60">
-      <div className="container-narrow flex h-16 items-center justify-between">
+      <div className="container-narrow flex h-16 items-center justify-between gap-3">
         <Logo />
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           {links.map((l) => (
@@ -22,14 +32,35 @@ export const Navbar = () => {
               {l.label}
             </a>
           ))}
-          <Link to="/admin" className="hover:text-foreground transition-colors">Admin</Link>
+          {user?.role === "admin" && (
+            <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
+          )}
         </nav>
-        <button
-          onClick={scrollToReserve}
-          className="rounded-full border border-primary/60 bg-primary/10 text-primary px-4 py-1.5 text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors"
-        >
-          Reserve
-        </button>
+        <div className="flex items-center gap-2">
+          {user && (
+            <div className="hidden sm:flex items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${user.role === "admin" ? "bg-primary" : "bg-emerald-400"}`} />
+                <span className="text-muted-foreground">
+                  {user.role === "admin" ? "Manager" : user.name?.split(" ")[0] ?? "Guest"}
+                </span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-foreground transition-colors px-2"
+                aria-label="Sign out"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+          <button
+            onClick={scrollToReserve}
+            className="rounded-full border border-primary/60 bg-primary/10 text-primary px-4 py-1.5 text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            Reserve
+          </button>
+        </div>
       </div>
     </header>
   );
