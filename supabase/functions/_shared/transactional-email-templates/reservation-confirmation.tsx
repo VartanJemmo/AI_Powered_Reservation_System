@@ -22,7 +22,19 @@ interface ReservationConfirmationProps {
   partySize?: number
   deposit?: boolean
   notes?: string
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking'
+  seatingLabel?: string
   status?: 'confirmed' | 'waitlist'
+}
+
+const seatingDisplay = (
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking',
+  seatingLabel?: string,
+) => {
+  if (seatingLabel) return seatingLabel
+  if (seating === 'outdoor-smoking') return 'Outdoor · Smoking'
+  if (seating === 'indoor-non-smoking') return 'Indoor · Non-smoking'
+  return ''
 }
 
 const formatDate = (date?: string) => {
@@ -47,9 +59,12 @@ const ReservationConfirmationEmail = ({
   partySize,
   deposit,
   notes,
+  seating,
+  seatingLabel,
   status = 'confirmed',
 }: ReservationConfirmationProps) => {
   const isWaitlist = status === 'waitlist'
+  const seatingText = seatingDisplay(seating, seatingLabel)
   return (
     <Html lang="en" dir="ltr">
       <Head />

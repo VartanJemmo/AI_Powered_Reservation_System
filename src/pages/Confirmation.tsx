@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { formatDateLong, getReservation, type Reservation } from "@/lib/reservations";
+import { formatDateLong, getReservation, SEATING_LABELS, type Reservation } from "@/lib/reservations";
 import { Logo } from "@/components/Logo";
 
 const Confirmation = () => {
@@ -78,6 +78,7 @@ const Confirmation = () => {
             <Cell k="Name" v={r.name} />
             <Cell k="Phone" v={r.phone} />
             {r.email && <Cell k="Email" v={r.email} />}
+            <Cell k="Seating" v={SEATING_LABELS[r.seating]} />
             <Cell k="Deposit" v={r.deposit ? "$10/guest held" : "—"} />
             <Cell k="Reference" v={r.id.slice(0, 8).toUpperCase()} />
           </div>
