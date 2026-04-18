@@ -1,96 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Mayrig — Noir & Gold design system. All colors HSL. */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Noir & Gold palette */
+    --background: 30 10% 5%;          /* near-black warm */
+    --foreground: 38 38% 92%;         /* warm cream */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 12% 8%;
+    --card-foreground: 38 38% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 12% 8%;
+    --popover-foreground: 38 38% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 42 56% 54%;            /* gold #c9a84c */
+    --primary-foreground: 30 15% 6%;
+    --primary-glow: 42 78% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 10% 12%;
+    --secondary-foreground: 38 38% 92%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 8% 14%;
+    --muted-foreground: 36 14% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 42 56% 54%;
+    --accent-foreground: 30 15% 6%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 38 38% 92%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 36 12% 18%;
+    --input: 36 12% 16%;
+    --ring: 42 56% 54%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Brand specifics */
+    --gold: 42 56% 54%;
+    --gold-soft: 42 60% 80%;
+    --ink: 30 14% 4%;
+    --surface: 30 12% 8%;
+    --surface-elev: 30 10% 11%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(42 60% 60%), hsl(42 80% 78%));
+    --gradient-hero: linear-gradient(180deg, hsl(30 14% 4% / 0.2) 0%, hsl(30 14% 4% / 0.55) 50%, hsl(30 14% 4%) 100%);
+    --gradient-radial-gold: radial-gradient(circle at 50% 0%, hsl(42 56% 54% / 0.18), transparent 60%);
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Shadows */
+    --shadow-gold: 0 10px 40px -12px hsl(42 56% 54% / 0.45);
+    --shadow-elev: 0 20px 60px -20px hsl(0 0% 0% / 0.6);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.5);
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --transition-base: all 0.3s var(--ease-out);
 
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* sidebar (kept but themed) */
+    --sidebar-background: 30 12% 7%;
+    --sidebar-foreground: 38 38% 92%;
+    --sidebar-primary: 42 56% 54%;
+    --sidebar-primary-foreground: 30 15% 6%;
+    --sidebar-accent: 30 10% 12%;
+    --sidebar-accent-foreground: 38 38% 92%;
+    --sidebar-border: 36 12% 18%;
+    --sidebar-ring: 42 56% 54%;
   }
 }
 
@@ -98,8 +77,44 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
-  body {
-    @apply bg-background text-foreground;
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "kern";
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'DM Serif Display', serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .container-narrow {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-primary/90;
+  }
+  .gold-divider {
+    @apply h-px w-12 bg-primary/70;
+  }
+  .glass-card {
+    @apply rounded-2xl border border-border bg-card/80 backdrop-blur-md;
+    box-shadow: var(--shadow-soft);
+  }
+  .gold-text {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
