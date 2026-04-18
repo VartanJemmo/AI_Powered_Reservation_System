@@ -83,7 +83,7 @@ const Ceiling = () => (
 );
 
 const Walls = () => {
-  const wallMat = <meshStandardMaterial color="#2b1a10" roughness={0.9} />;
+  const wallMat = <meshStandardMaterial color="#5a3a22" roughness={0.85} />;
   return (
     <group>
       <mesh position={[0, ROOM.h / 2, -ROOM.d / 2]}>
