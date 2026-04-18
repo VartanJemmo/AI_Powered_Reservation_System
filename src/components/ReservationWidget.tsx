@@ -84,15 +84,16 @@ export const ReservationWidget = () => {
   return (
     <section id="reserve" className="relative py-20 sm:py-28">
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-50 pointer-events-none" aria-hidden />
-      <div className="container-narrow relative">
+      <div className="container-wide relative">
         <div className="text-center max-w-xl mx-auto">
           <span className="eyebrow justify-center"><span className="gold-divider" /> Reservations</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Reserve your table</h2>
           <p className="mt-3 text-muted-foreground">Real-time availability — takes under a minute.</p>
         </div>
 
-        <div className="mt-10 mx-auto max-w-2xl glass-card overflow-hidden">
-          <Stepper step={step} />
+        <div className="mt-10 mx-auto grid lg:grid-cols-[1fr_360px] gap-6 max-w-5xl items-start">
+          <div className="glass-card overflow-hidden">
+            <Stepper step={step} />
 
           <div className="p-5 sm:p-7">
             {step === 1 && (
@@ -320,10 +321,40 @@ export const ReservationWidget = () => {
             )}
           </div>
         </div>
+
+        {/* Desktop summary side panel */}
+        <aside className="hidden lg:block sticky top-24 glass-card overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <span className="eyebrow"><span className="gold-divider" /> Your booking</span>
+            <h3 className="mt-3 font-display text-2xl">Mayrig</h3>
+            <p className="text-xs text-muted-foreground mt-1">Pasteur Street, Gemmayze · Beirut</p>
+          </div>
+          <dl className="p-6 space-y-4 text-sm">
+            <SummaryRow k="Date" v={formatDateLong(date)} />
+            <SummaryRow k="Party" v={`${party} ${party === 1 ? "guest" : "guests"}`} />
+            <SummaryRow k="Time" v={time ?? <span className="text-muted-foreground">Pick a time</span>} />
+            {name && <SummaryRow k="Guest" v={name} />}
+            {phone && <SummaryRow k="Phone" v={phone} />}
+            <SummaryRow k="Deposit" v={deposit ? "$10/guest held" : "—"} />
+          </dl>
+          <div className="px-6 pb-6">
+            <div className="rounded-xl border border-border bg-secondary/40 p-4 text-xs text-muted-foreground">
+              🔔 We'll text you a reminder the day before. Modify or cancel any time.
+            </div>
+          </div>
+        </aside>
+        </div>
       </div>
     </section>
   );
 };
+
+const SummaryRow = ({ k, v }: { k: string; v: React.ReactNode }) => (
+  <div className="flex items-start justify-between gap-4">
+    <dt className="text-[10px] uppercase tracking-widest text-primary/90 pt-0.5">{k}</dt>
+    <dd className="text-right text-foreground">{v}</dd>
+  </div>
+);
 
 const Stepper = ({ step }: { step: Step }) => {
   const labels = ["Date & party", "Time", "Details", "Confirm"];
