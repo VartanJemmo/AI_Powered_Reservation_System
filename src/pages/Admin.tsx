@@ -125,37 +125,53 @@ const Admin = () => {
     return map;
   }, [allReservations]);
 
+  const trimmedQuery = query.trim();
+
+  const matchesReservationSearch = (r: Reservation, rawQuery: string) => {
+    const q = rawQuery.trim().toLowerCase();
+    if (!q) return true;
+
+    const name = (r.name ?? "").toLowerCase();
+    const phone = (r.phone ?? "").toLowerCase();
+    const email = (r.email ?? "").toLowerCase();
+    const phoneDigits = (r.phone ?? "").replace(/\D/g, "");
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    return tokens.every((tok) => {
+      const tokDigits = tok.replace(/\D/g, "");
+      return (
+        name.includes(tok) ||
+        phone.includes(tok) ||
+        (email && email.includes(tok)) ||
+        (tokDigits.length > 0 && phoneDigits.includes(tokDigits))
+      );
+    });
+  };
+
   const filtered = useMemo(() => {
-    const raw = query.trim();
-    const q = raw.toLowerCase();
-    const qDigits = raw.replace(/\D/g, "");
-    // When searching, look across ALL dates so the manager can find a guest
-    // even if they don't know the day. Otherwise stick to the selected day.
-    const source = raw ? allReservations : dayList;
+    const source = trimmedQuery ? allReservations : dayList;
+
     return source
       .filter((r) => {
         if (filter !== "all" && r.status !== filter) return false;
-        if (!raw) return true;
-        const name = (r.name ?? "").toLowerCase();
-        const phone = (r.phone ?? "").toLowerCase();
-        const email = (r.email ?? "").toLowerCase();
-        const phoneDigits = (r.phone ?? "").replace(/\D/g, "");
-
-        // Match each whitespace-separated token (so "john 76" finds John w/ phone 76…)
-        const tokens = q.split(/\s+/).filter(Boolean);
-        return tokens.every((tok) => {
-          const tokDigits = tok.replace(/\D/g, "");
-          if (name.includes(tok)) return true;
-          if (email && email.includes(tok)) return true;
-          if (phone.includes(tok)) return true;
-          if (tokDigits && phoneDigits.includes(tokDigits)) return true;
-          return false;
-        }) || (qDigits.length >= 2 && phoneDigits.includes(qDigits));
+        return matchesReservationSearch(r, trimmedQuery);
       })
       .sort((a, b) =>
         a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
       );
-  }, [dayList, allReservations, filter, query]);
+  }, [allReservations, dayList, filter, trimmedQuery]);
+
+  const searchSuggestions = useMemo(() => {
+    if (!trimmedQuery) return [] as Reservation[];
+
+    const seen = new Set<string>();
+    return filtered.filter((r) => {
+      const key = `${r.name}__${r.phone}__${r.email ?? ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 6);
+  }, [filtered, trimmedQuery]);
 
   const slots = useMemo(() => getSlotsForDate(date, 1), [date, tick]);
 
@@ -316,18 +332,53 @@ const Admin = () => {
               <h1 className="font-display text-3xl sm:text-4xl">Reservations</h1>
               <p className="text-muted-foreground text-sm mt-1">{formatDateLong(date)}</p>
             </div>
-            <div className="relative w-full sm:w-72">
+            <div className="relative w-full sm:w-80">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search name, phone, email…"
+                placeholder="Search guest by name or phone…"
+                aria-autocomplete="list"
                 className="h-11 w-full rounded-xl border border-border bg-input/60 pl-10 pr-4 text-sm focus:outline-none focus:border-primary transition-colors"
               />
               <svg className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
                 <path d="m20 20-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
+              {trimmedQuery && (
+                <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-lg">
+                  {searchSuggestions.length > 0 ? (
+                    <div className="max-h-72 overflow-y-auto">
+                      {searchSuggestions.map((r) => (
+                        <button
+                          key={`${r.name}-${r.phone}-${r.email ?? "no-email"}`}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setQuery(r.name);
+                          }}
+                          className="flex w-full items-start justify-between gap-3 border-t border-border/60 px-4 py-3 text-left transition-colors first:border-t-0 hover:bg-secondary/40"
+                        >
+                          <div className="min-w-0">
+                            <div className="font-medium text-foreground">{r.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {r.phone}
+                              {r.email ? ` · ${r.email}` : ""}
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-right text-[11px] uppercase tracking-widest text-muted-foreground">
+                            <div>{r.time}</div>
+                            <div>{r.date}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-muted-foreground">No matching guests.</div>
+                  )}
+                </div>
+              )}
             </div>
+          </div>
           </div>
 
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
