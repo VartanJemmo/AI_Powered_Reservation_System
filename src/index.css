@@ -95,6 +95,9 @@
   .container-narrow {
     @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
+  .container-wide {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+  }
   .eyebrow {
     @apply inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-primary/90;
   }
