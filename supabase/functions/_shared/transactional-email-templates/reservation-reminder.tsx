@@ -19,6 +19,18 @@ interface ReservationReminderProps {
   date?: string
   time?: string
   partySize?: number
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking'
+  seatingLabel?: string
+}
+
+const seatingDisplay = (
+  seating?: 'indoor-non-smoking' | 'outdoor-smoking',
+  seatingLabel?: string,
+) => {
+  if (seatingLabel) return seatingLabel
+  if (seating === 'outdoor-smoking') return 'Outdoor · Smoking'
+  if (seating === 'indoor-non-smoking') return 'Indoor · Non-smoking'
+  return ''
 }
 
 const formatDate = (date?: string) => {
@@ -40,7 +52,12 @@ const ReservationReminderEmail = ({
   date,
   time,
   partySize,
-}: ReservationReminderProps) => (
+  seating,
+  seatingLabel,
+}: ReservationReminderProps) => {
+  const seatingText = seatingDisplay(seating, seatingLabel)
+  return (
+  <Html lang="en" dir="ltr"></Html>) as never // placeholder replaced below
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>
