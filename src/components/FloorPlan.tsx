@@ -357,6 +357,7 @@ const Table = ({
         {renderTop()}
         {renderLeg()}
         {renderChairs()}
+        {!tooSmall && renderPlaceSettings()}
         {(type === "round" || type === "rect") && !booked && !tooSmall && <Candle position={[0, 0.77, 0]} />}
         {type === "rect" && !booked && !tooSmall && <Candle position={[0, 0.77, -0.5]} />}
         {type === "rect" && !booked && !tooSmall && <Candle position={[0, 0.77, 0.5]} />}
