@@ -196,6 +196,7 @@ export type Database = {
           reservation_time: string
           seating: string
           status: string
+          table_id: string | null
           updated_at: string
         }
         Insert: {
@@ -212,6 +213,7 @@ export type Database = {
           reservation_time: string
           seating?: string
           status?: string
+          table_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -228,6 +230,7 @@ export type Database = {
           reservation_time?: string
           seating?: string
           status?: string
+          table_id?: string | null
           updated_at?: string
         }
         Relationships: []

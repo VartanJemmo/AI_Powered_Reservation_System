@@ -50,6 +50,24 @@ export const ReservationWidget = () => {
   const [deposit, setDeposit] = useState(false);
   const [seating, setSeating] = useState<Seating>("indoor-non-smoking");
   const [waitlist, setWaitlist] = useState(false);
+  const [tableId, setTableId] = useState<string | null>(null);
+
+  // Pick up a table preselected from the 3D Floor Plan
+  useEffect(() => {
+    const raw = sessionStorage.getItem("mayrig.preselected-table");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { tableId: string; seats: number; date: string; time: string };
+      setTableId(parsed.tableId);
+      if (parsed.date) setDate(parsed.date);
+      if (parsed.time) setTime(parsed.time);
+      if (parsed.seats) setParty(Math.min(parsed.seats, 8));
+      setStep(3);
+      sessionStorage.removeItem("mayrig.preselected-table");
+    } catch (e) {
+      console.error("Failed to parse preselected table", e);
+    }
+  }, []);
 
   // If the user logs in mid-flow, prefill empty fields
   useEffect(() => {
@@ -94,6 +112,7 @@ export const ReservationWidget = () => {
         notes: notes.trim() || undefined,
         deposit,
         seating,
+        tableId: tableId ?? undefined,
         status: asWaitlist ? "waitlist" : "confirmed",
       });
 
@@ -379,6 +398,7 @@ export const ReservationWidget = () => {
                   <Row k="Date" v={formatDateLong(date)} />
                   <Row k="Time" v={waitlist ? "Waitlist" : time ?? "—"} />
                   <Row k="Party" v={`${party} ${party === 1 ? "guest" : "guests"}`} />
+                  {tableId && <Row k="Table" v={tableId} />}
                   <Row k="Name" v={name} />
                   <Row k="Phone" v={phone} />
                   {email && <Row k="Email" v={email} />}
@@ -415,6 +435,7 @@ export const ReservationWidget = () => {
             <SummaryRow k="Date" v={formatDateLong(date)} />
             <SummaryRow k="Party" v={`${party} ${party === 1 ? "guest" : "guests"}`} />
             <SummaryRow k="Time" v={time ?? <span className="text-muted-foreground">Pick a time</span>} />
+            {tableId && <SummaryRow k="Table" v={<span className="text-primary">{tableId}</span>} />}
             {name && <SummaryRow k="Guest" v={name} />}
             {phone && <SummaryRow k="Phone" v={phone} />}
             <SummaryRow k="Deposit" v={deposit ? "$10/guest held" : "—"} />

@@ -1,0 +1,2 @@
+ALTER TABLE public.reservations ADD COLUMN IF NOT EXISTS table_id text;
+CREATE INDEX IF NOT EXISTS idx_reservations_date_time_table ON public.reservations (reservation_date, reservation_time, table_id);

@@ -1,7 +1,16 @@
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
+import {
+  ALL_TIMES,
+  formatDateLong,
+  getBookedTables,
+  refreshReservations,
+  subscribeReservations,
+  todayISO,
+} from "@/lib/reservations";
+import { toast } from "sonner";
 
 const GOLD = "#c9a84c";
 const GOLD_GLOW = "#f0d78c";
@@ -9,6 +18,8 @@ const WOOD = "#3a2a1f";
 const WOOD_DARK = "#2a1d15";
 const CREAM = "#e8dcc4";
 const FLOOR = "#1a120c";
+const RED = "#a8392e";
+const GREEN = "#3a8f5e";
 
 type TableData = {
   id: string;
@@ -85,23 +96,42 @@ const Candle = ({ position }: { position: [number, number, number] }) => {
   );
 };
 
-const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; onHover: (id: string | null) => void }) => {
+const Table = ({
+  data,
+  hovered,
+  selected,
+  booked,
+  onHover,
+  onClick,
+}: {
+  data: TableData;
+  hovered: boolean;
+  selected: boolean;
+  booked: boolean;
+  onHover: (id: string | null) => void;
+  onClick: (id: string) => void;
+}) => {
   const { type, position, seats, id } = data;
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame(() => {
     if (groupRef.current) {
-      const targetY = hovered ? 0.08 : 0;
+      const targetY = (hovered || selected) && !booked ? 0.1 : 0;
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.12);
     }
   });
+
+  // Status ring color
+  const statusColor = booked ? RED : selected ? GOLD : GREEN;
+  const ringEmissive = booked ? RED : selected ? GOLD_GLOW : GREEN;
+  const topColor = booked ? "#3a1f1a" : selected ? "#5a4220" : WOOD;
 
   const renderTop = () => {
     if (type === "round") {
       return (
         <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.65, 0.65, 0.06, 32]} />
-          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+          <meshStandardMaterial color={topColor} roughness={0.4} metalness={0.1} />
         </mesh>
       );
     }
@@ -109,14 +139,14 @@ const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; 
       return (
         <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
           <boxGeometry args={[1, 0.06, 1.8]} />
-          <meshStandardMaterial color={WOOD} roughness={0.4} metalness={0.1} />
+          <meshStandardMaterial color={topColor} roughness={0.4} metalness={0.1} />
         </mesh>
       );
     }
     return (
       <mesh position={[0, 1.1, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.45, 0.45, 0.05, 24]} />
-        <meshStandardMaterial color={WOOD} roughness={0.3} metalness={0.2} />
+        <meshStandardMaterial color={topColor} roughness={0.3} metalness={0.2} />
       </mesh>
     );
   };
@@ -177,26 +207,52 @@ const Table = ({ data, hovered, onHover }: { data: TableData; hovered: boolean; 
     ];
   };
 
+  // Status disc on the floor under the table
+  const discRadius = type === "rect" ? 1.2 : 0.85;
+  const discY = 0.015;
+
   return (
     <group
       ref={groupRef}
       position={position}
-      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = "pointer"; }}
+      onPointerOver={(e) => { e.stopPropagation(); onHover(id); document.body.style.cursor = booked ? "not-allowed" : "pointer"; }}
       onPointerOut={() => { onHover(null); document.body.style.cursor = "default"; }}
+      onClick={(e) => { e.stopPropagation(); onClick(id); }}
     >
+      {/* Floor disc — green available, red booked, gold selected */}
+      <mesh position={[0, discY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        {type === "rect" ? (
+          <planeGeometry args={[1.6, 2.4]} />
+        ) : (
+          <circleGeometry args={[discRadius, 32]} />
+        )}
+        <meshStandardMaterial
+          color={statusColor}
+          emissive={ringEmissive}
+          emissiveIntensity={selected ? 0.6 : hovered ? 0.4 : 0.25}
+          transparent
+          opacity={selected ? 0.55 : 0.32}
+        />
+      </mesh>
+
       {renderTop()}
       {renderLeg()}
       {renderChairs()}
-      {(type === "round" || type === "rect") && <Candle position={[0, 0.77, 0]} />}
-      {type === "rect" && <Candle position={[0, 0.77, -0.5]} />}
-      {type === "rect" && <Candle position={[0, 0.77, 0.5]} />}
+      {(type === "round" || type === "rect") && !booked && <Candle position={[0, 0.77, 0]} />}
+      {type === "rect" && !booked && <Candle position={[0, 0.77, -0.5]} />}
+      {type === "rect" && !booked && <Candle position={[0, 0.77, 0.5]} />}
 
-      {hovered && (
+      {(hovered || selected) && (
         <Html position={[0, type === "bar" ? 1.6 : 1.4, 0]} center distanceFactor={10}>
-          <div className="pointer-events-none rounded-md border border-primary/60 bg-background/90 backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap">
+          <div className={`pointer-events-none rounded-md border backdrop-blur px-3 py-1.5 text-xs whitespace-nowrap ${
+            booked ? "border-destructive/60 bg-background/90" : selected ? "border-primary bg-primary/20" : "border-primary/60 bg-background/90"
+          }`}>
             <div className="font-display text-primary text-sm">Table {id}</div>
             <div className="text-muted-foreground uppercase tracking-widest text-[10px]">
               {type === "bar" ? "Bar high" : type === "round" ? "Round" : "Banquet"} · {seats} seats
+            </div>
+            <div className={`uppercase tracking-widest text-[10px] mt-0.5 ${booked ? "text-destructive" : selected ? "text-primary" : "text-emerald-400"}`}>
+              {booked ? "Booked" : selected ? "Selected" : "Available"}
             </div>
           </div>
         </Html>
@@ -296,7 +352,15 @@ const Chandelier = ({ position }: { position: [number, number, number] }) => (
   </group>
 );
 
-const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (id: string | null) => void }) => (
+type SceneProps = {
+  hovered: string | null;
+  selected: string | null;
+  bookedSet: Set<string>;
+  setHovered: (id: string | null) => void;
+  onPick: (id: string) => void;
+};
+
+const Scene = ({ hovered, selected, bookedSet, setHovered, onPick }: SceneProps) => (
   <>
     <ambientLight intensity={0.15} color={GOLD_GLOW} />
     <directionalLight position={[5, 8, 5]} intensity={0.3} color={GOLD_GLOW} castShadow />
@@ -308,7 +372,15 @@ const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (i
     <Walls />
 
     {TABLES.map((t) => (
-      <Table key={t.id} data={t} hovered={hovered === t.id} onHover={setHovered} />
+      <Table
+        key={t.id}
+        data={t}
+        hovered={hovered === t.id}
+        selected={selected === t.id}
+        booked={bookedSet.has(t.id)}
+        onHover={setHovered}
+        onClick={onPick}
+      />
     ))}
 
     <ContactShadows position={[0, 0.01, 0]} opacity={0.6} scale={20} blur={2} far={4} />
@@ -316,10 +388,66 @@ const Scene = ({ hovered, setHovered }: { hovered: string | null; setHovered: (i
   </>
 );
 
+function buildDateOptions(days = 14) {
+  const out: { iso: string; weekday: string; day: number; month: string }[] = [];
+  const base = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    out.push({
+      iso: d.toISOString().slice(0, 10),
+      weekday: d.toLocaleDateString("en-US", { weekday: "short" }),
+      day: d.getDate(),
+      month: d.toLocaleDateString("en-US", { month: "short" }),
+    });
+  }
+  return out;
+}
+
 export const FloorPlan = () => {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [date, setDate] = useState<string>(todayISO());
+  const [time, setTime] = useState<string>("19:30");
+  const [tick, setTick] = useState(0);
 
-  const scrollToReserve = () => {
+  const dates = useMemo(() => buildDateOptions(14), []);
+
+  // Refresh + subscribe to live reservation changes
+  useEffect(() => {
+    refreshReservations();
+    const unsub = subscribeReservations(() => setTick((t) => t + 1));
+    return () => { unsub(); };
+  }, []);
+
+  const bookedSet = useMemo(() => getBookedTables(date, time), [date, time, tick]);
+  const selectedTable = TABLES.find((t) => t.id === selected) ?? null;
+  const availableCount = TABLES.length - bookedSet.size;
+
+  // Clear selection if it becomes unavailable
+  useEffect(() => {
+    if (selected && bookedSet.has(selected)) setSelected(null);
+  }, [bookedSet, selected]);
+
+  const handlePick = (id: string) => {
+    if (bookedSet.has(id)) {
+      toast.error(`Table ${id} is booked at ${time}. Try another time or table.`);
+      return;
+    }
+    setSelected(id);
+  };
+
+  const reserveSelected = () => {
+    if (!selectedTable) {
+      toast.info("Pick an available table first");
+      return;
+    }
+    sessionStorage.setItem(
+      "mayrig.preselected-table",
+      JSON.stringify({ tableId: selectedTable.id, seats: selectedTable.seats, date, time }),
+    );
+    toast.success(`Table ${selectedTable.id} held — complete your booking`);
     document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -330,7 +458,7 @@ export const FloorPlan = () => {
           <span className="eyebrow"><span className="gold-divider" /> Floor plan</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Choose your corner</h2>
           <p className="mt-4 text-muted-foreground">
-            Drag to rotate, scroll to zoom. Hover a table to see its capacity. From intimate round tables under the chandeliers to long banquet seats and the gilded bar — pick where the evening unfolds.
+            Pick a date and time, then tap a table on the 3D plan. Green tables are free, red are taken. Your selection holds for the booking step.
           </p>
         </div>
 
@@ -355,35 +483,92 @@ export const FloorPlan = () => {
           </div>
         </div>
 
-        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs">
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Round tables</span>
+        {/* Date + time picker */}
+        <div className="mt-6 rounded-xl border border-border bg-surface/40 p-4 sm:p-5">
+          <div className="flex items-baseline justify-between flex-wrap gap-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-primary/90">Check availability</div>
+            <div className="text-xs text-muted-foreground">
+              <span className="text-emerald-400">{availableCount}</span> of {TABLES.length} tables free · {formatDateLong(date)} · {time}
             </div>
-            <p className="mt-2 text-muted-foreground">2–6 guests · candlelit, intimate</p>
           </div>
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-1.5 bg-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Banquet</span>
-            </div>
-            <p className="mt-2 text-muted-foreground">6–8 guests · long shared tables</p>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+            {dates.map((d, i) => {
+              const active = d.iso === date;
+              return (
+                <button
+                  key={d.iso}
+                  onClick={() => setDate(d.iso)}
+                  className={`shrink-0 w-14 sm:w-16 rounded-lg border px-2 py-2 text-center transition-all ${
+                    active
+                      ? "bg-gradient-gold text-primary-foreground border-transparent shadow-gold"
+                      : "border-border bg-secondary/40 hover:border-primary/40"
+                  }`}
+                >
+                  <div className="text-[9px] uppercase tracking-widest opacity-80">{d.weekday}</div>
+                  <div className="text-base font-display">{d.day}</div>
+                  <div className="text-[9px] uppercase tracking-widest opacity-80">{d.month}</div>
+                  {i === 0 && (
+                    <div className={`mt-0.5 text-[8px] uppercase tracking-widest ${active ? "" : "text-primary"}`}>Today</div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          <div className="rounded-lg border border-border bg-surface/50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm border border-primary/80" />
-              <span className="uppercase tracking-widest text-primary/90">Bar high tables</span>
-            </div>
-            <p className="mt-2 text-muted-foreground">2 guests · perched by the gold bar</p>
+          <div className="mt-3 grid grid-cols-5 sm:grid-cols-9 gap-2">
+            {ALL_TIMES.map((t) => {
+              const active = time === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTime(t)}
+                  className={`h-10 rounded-lg border text-xs transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border bg-secondary/40 hover:border-primary/40"
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-10 relative rounded-2xl overflow-hidden border border-border shadow-elev bg-gradient-to-b from-surface to-background">
+        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full" style={{ background: GREEN }} />
+              <span className="uppercase tracking-widest text-emerald-400">Available</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">Tap a table to select it</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-primary" />
+              <span className="uppercase tracking-widest text-primary/90">Selected</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">{selectedTable ? `Table ${selectedTable.id} · ${selectedTable.seats} seats` : "Nothing selected yet"}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full" style={{ background: RED }} />
+              <span className="uppercase tracking-widest text-destructive/90">Booked</span>
+            </div>
+            <p className="mt-2 text-muted-foreground">Try another time slot</p>
+          </div>
+        </div>
+
+        <div className="mt-6 relative rounded-2xl overflow-hidden border border-border shadow-elev bg-gradient-to-b from-surface to-background">
           <div className="aspect-[16/10] w-full">
             <Canvas shadows camera={{ position: [9, 9, 12], fov: 45 }}>
               <Suspense fallback={null}>
-                <Scene hovered={hovered} setHovered={setHovered} />
+                <Scene
+                  hovered={hovered}
+                  selected={selected}
+                  bookedSet={bookedSet}
+                  setHovered={setHovered}
+                  onPick={handlePick}
+                />
                 <OrbitControls
                   enablePan={false}
                   minDistance={8}
@@ -394,15 +579,20 @@ export const FloorPlan = () => {
               </Suspense>
             </Canvas>
           </div>
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none gap-3 flex-wrap">
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded">
-              Drag · Scroll · Hover
+              Drag · Scroll · Click table
             </div>
             <button
-              onClick={scrollToReserve}
-              className="pointer-events-auto rounded-full border border-primary/60 bg-primary/10 text-primary px-4 py-2 text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors backdrop-blur"
+              onClick={reserveSelected}
+              disabled={!selectedTable}
+              className={`pointer-events-auto rounded-full border px-5 py-2 text-xs uppercase tracking-widest backdrop-blur transition-colors ${
+                selectedTable
+                  ? "border-primary bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90"
+                  : "border-border bg-background/60 text-muted-foreground cursor-not-allowed"
+              }`}
             >
-              Reserve a table
+              {selectedTable ? `Reserve Table ${selectedTable.id}` : "Pick a table"}
             </button>
           </div>
         </div>
