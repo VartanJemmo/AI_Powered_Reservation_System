@@ -1,16 +1,58 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Navbar } from "@/components/Navbar";
+import { Hero } from "@/components/Hero";
+import { About } from "@/components/About";
+import { MenuPreview } from "@/components/MenuPreview";
+import { Gallery } from "@/components/Gallery";
+import { ReservationWidget } from "@/components/ReservationWidget";
+import { Visit } from "@/components/Visit";
+import { Footer } from "@/components/Footer";
+import { StickyReserveBar } from "@/components/StickyReserveBar";
+import { useEffect } from "react";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
+  useEffect(() => {
+    document.title = "Mayrig — Armenian fine dining in Beirut · Reserve a table";
+    const desc = "Reserve a table at Mayrig, a candlelit Armenian restaurant in Beirut. Heritage mezze, slow-grilled kebabs and pistachio baklava.";
+    let m = document.querySelector('meta[name="description"]');
+    if (!m) { m = document.createElement("meta"); m.setAttribute("name", "description"); document.head.appendChild(m); }
+    m.setAttribute("content", desc);
+    let l = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!l) { l = document.createElement("link"); l.setAttribute("rel", "canonical"); document.head.appendChild(l); }
+    l.setAttribute("href", window.location.origin + "/");
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <main className="min-h-screen bg-background text-foreground">
+      <Navbar />
+      <Hero />
+      <About />
+      <MenuPreview />
+      <Gallery />
+      <ReservationWidget />
+      <Visit />
+      <Footer />
+      <StickyReserveBar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            name: "Mayrig",
+            servesCuisine: "Armenian",
+            priceRange: "$$$",
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: "Pasteur Street, Gemmayze",
+              addressLocality: "Beirut",
+              addressCountry: "LB",
+            },
+            acceptsReservations: true,
+          }),
+        }}
+      />
+    </main>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
