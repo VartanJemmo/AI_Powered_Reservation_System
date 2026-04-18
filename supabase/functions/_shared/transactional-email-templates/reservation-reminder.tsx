@@ -57,7 +57,6 @@ const ReservationReminderEmail = ({
 }: ReservationReminderProps) => {
   const seatingText = seatingDisplay(seating, seatingLabel)
   return (
-  <Html lang="en" dir="ltr"></Html>) as never // placeholder replaced below
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>
@@ -84,6 +83,12 @@ const ReservationReminderEmail = ({
           <Text style={cardValue}>
             {partySize ? `${partySize} ${partySize === 1 ? 'guest' : 'guests'}` : '—'}
           </Text>
+          {seatingText && (
+            <>
+              <Text style={cardLabel}>Seating</Text>
+              <Text style={cardValue}>{seatingText}</Text>
+            </>
+          )}
         </Section>
 
         <Text style={text}>
@@ -95,7 +100,8 @@ const ReservationReminderEmail = ({
       </Container>
     </Body>
   </Html>
-)
+  )
+}
 
 export const template = {
   component: ReservationReminderEmail,
@@ -107,6 +113,8 @@ export const template = {
     date: '2026-04-20',
     time: '19:30',
     partySize: 4,
+    seating: 'outdoor-smoking',
+    seatingLabel: 'Outdoor · Smoking',
   },
 } satisfies TemplateEntry
 
