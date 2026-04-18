@@ -152,24 +152,73 @@ const Table = ({
   position,
   rotation = 0,
   shape = "round",
+  id,
+  seats: seatCount,
+  onSelect,
 }: {
   position: [number, number, number];
   rotation?: number;
   shape?: "round" | "rect";
+  id: string;
+  seats: number;
+  onSelect: (t: { id: string; seats: number }) => void;
 }) => {
-  const seats = shape === "round" ? 4 : 6;
+  const seats = seatCount;
+  const [hovered, setHovered] = useState(false);
+  const ringRef = useRef<THREE.Mesh>(null!);
+  useFrame(() => {
+    if (ringRef.current) {
+      const m = ringRef.current.material as THREE.MeshBasicMaterial;
+      m.opacity = hovered
+        ? 0.85
+        : 0.35 + Math.sin(performance.now() * 0.004) * 0.15;
+    }
+  });
+
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
+    <group
+      position={position}
+      rotation={[0, rotation, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = "";
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect({ id, seats });
+      }}
+    >
+      {/* Glowing reserve ring on the floor */}
+      <mesh ref={ringRef} rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
+        <ringGeometry args={[1.35, 1.55, 48]} />
+        <meshBasicMaterial color="#c9821f" transparent opacity={0.4} side={THREE.DoubleSide} />
+      </mesh>
+
       {/* Tablecloth */}
       {shape === "round" ? (
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.85, 0.85, 0.05, 32]} />
-          <meshStandardMaterial color="#f3ead7" roughness={0.85} />
+          <meshStandardMaterial
+            color={hovered ? "#fff5dc" : "#f3ead7"}
+            emissive={hovered ? "#c9821f" : "#000000"}
+            emissiveIntensity={hovered ? 0.25 : 0}
+            roughness={0.85}
+          />
         </mesh>
       ) : (
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <boxGeometry args={[2.2, 0.05, 1.1]} />
-          <meshStandardMaterial color="#f3ead7" roughness={0.85} />
+          <meshStandardMaterial
+            color={hovered ? "#fff5dc" : "#f3ead7"}
+            emissive={hovered ? "#c9821f" : "#000000"}
+            emissiveIntensity={hovered ? 0.25 : 0}
+            roughness={0.85}
+          />
         </mesh>
       )}
       {/* Pedestal */}
@@ -179,6 +228,18 @@ const Table = ({
       </mesh>
       {/* Candle on top */}
       <Candle position={[0, 0.78, 0]} />
+      {/* Floating label */}
+      <Html position={[0, 1.6, 0]} center distanceFactor={8} occlude={false}>
+        <div
+          className={`pointer-events-none select-none whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-widest font-display transition-all ${
+            hovered
+              ? "bg-primary text-primary-foreground border-primary shadow-gold scale-110"
+              : "bg-background/80 text-primary border-primary/40 backdrop-blur"
+          }`}
+        >
+          {id} · {seats}p · {hovered ? "Reserve →" : "Tap to reserve"}
+        </div>
+      </Html>
       {/* Wine glass */}
       <mesh position={[shape === "round" ? 0.35 : 0.7, 0.88, 0.2]}>
         <coneGeometry args={[0.06, 0.18, 12, 1, true]} />
@@ -304,18 +365,18 @@ const Rugs = () => (
   </>
 );
 
-const RestaurantScene = () => {
+const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; seats: number }) => void }) => {
   const tables = useMemo(
     () =>
       [
-        { p: [-8, 0, -8] as [number, number, number], s: "round" as const },
-        { p: [-8, 0, 0] as [number, number, number], s: "round" as const },
-        { p: [-8, 0, 8] as [number, number, number], s: "round" as const },
-        { p: [0, 0, -8] as [number, number, number], s: "round" as const },
-        { p: [0, 0, 0] as [number, number, number], s: "round" as const },
-        { p: [0, 0, 8] as [number, number, number], s: "round" as const },
-        { p: [-13, 0, -10] as [number, number, number], s: "rect" as const },
-        { p: [-13, 0, 10] as [number, number, number], s: "rect" as const },
+        { id: "T1", p: [-8, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T2", p: [-8, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T3", p: [-8, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T4", p: [0, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T5", p: [0, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "T6", p: [0, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
+        { id: "B1", p: [-13, 0, -10] as [number, number, number], s: "rect" as const, seats: 6 },
+        { id: "B2", p: [-13, 0, 10] as [number, number, number], s: "rect" as const, seats: 6 },
       ],
     [],
   );
@@ -331,7 +392,15 @@ const RestaurantScene = () => {
       <Rugs />
       <Bar />
       {tables.map((t, i) => (
-        <Table key={i} position={t.p} shape={t.s} rotation={(i * Math.PI) / 5} />
+        <Table
+          key={t.id}
+          id={t.id}
+          seats={t.seats}
+          position={t.p}
+          shape={t.s}
+          rotation={(i * Math.PI) / 5}
+          onSelect={onSelectTable}
+        />
       ))}
       <Chandelier position={[-4, 0, -4]} />
       <Chandelier position={[-4, 0, 4]} />
@@ -400,6 +469,34 @@ export const Walkthrough3D = () => {
   const [locked, setLocked] = useState(false);
   const touchDir = useRef({ x: 0, y: 0 });
   const controlsRef = useRef<any>(null);
+  const [picked, setPicked] = useState<{ id: string; seats: number } | null>(null);
+
+  const handleSelectTable = (t: { id: string; seats: number }) => {
+    try {
+      if (document.pointerLockElement) document.exitPointerLock();
+    } catch {}
+    setPicked(t);
+  };
+
+  const reserveNow = () => {
+    if (!picked) return;
+    sessionStorage.setItem(
+      "mayrig.preselected-table",
+      JSON.stringify({ tableId: picked.id, seats: picked.seats }),
+    );
+    setPicked(null);
+    const el = document.getElementById("reserve");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Safe lock — guard against unmounted DOM (the runtime "Target Element removed" error)
+  const tryLock = () => {
+    requestAnimationFrame(() => {
+      try {
+        controlsRef.current?.lock?.();
+      } catch {}
+    });
+  };
 
   return (
     <section
@@ -412,14 +509,14 @@ export const Walkthrough3D = () => {
           <span className="eyebrow"><span className="gold-divider" /> Step inside</span>
           <h2 className="mt-3 font-display text-3xl sm:text-4xl">Walk through Mayrig</h2>
           <p className="mt-3 text-muted-foreground text-sm sm:text-base">
-            Drift between candlelit tables, glide past the bar, and feel the warmth of the room before you arrive.
+            Drift between candlelit tables, glide past the bar, and tap any glowing table to reserve it.
           </p>
         </div>
 
         <div className="mt-8 relative w-full h-[70vh] min-h-[480px] max-h-[860px] rounded-2xl overflow-hidden border border-border shadow-elev bg-black">
           <Canvas shadows camera={{ fov: 70, near: 0.1, far: 100 }} dpr={[1, 1.5]}>
             <Suspense fallback={<Html center><span className="text-primary text-xs">Lighting candles…</span></Html>}>
-              <RestaurantScene />
+              <RestaurantScene onSelectTable={handleSelectTable} />
               <Player touchDir={touchDir} />
               <PointerLockControls
                 ref={controlsRef}
@@ -432,16 +529,16 @@ export const Walkthrough3D = () => {
           {locked && <Crosshair />}
           <Joystick dirRef={touchDir} />
 
-          {!locked && (
+          {!locked && !picked && (
             <button
-              onClick={() => controlsRef.current?.lock?.()}
+              onClick={tryLock}
               className="absolute inset-0 z-20 grid place-items-center bg-background/70 backdrop-blur-sm hidden md:grid"
               aria-label="Enter walkthrough"
             >
               <div className="text-center px-6">
                 <div className="font-display text-2xl sm:text-3xl gold-text">Enter the room</div>
                 <p className="mt-2 text-sm text-muted-foreground max-w-md">
-                  Click to look around · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">W A S D</kbd> to walk · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Shift</kbd> to glide · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Esc</kbd> to release
+                  Click to look around · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">W A S D</kbd> to walk · Tap any table to reserve · <kbd className="px-1.5 py-0.5 rounded border border-border bg-card text-xs">Esc</kbd> to release
                 </p>
                 <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium shadow-gold">
                   Begin the stroll
@@ -450,9 +547,34 @@ export const Walkthrough3D = () => {
             </button>
           )}
 
-          {/* Mobile hint */}
+          {picked && (
+            <div className="absolute inset-0 z-30 grid place-items-center bg-background/75 backdrop-blur-sm animate-fade-in">
+              <div className="max-w-sm w-[90%] rounded-2xl border border-primary/40 bg-card p-6 shadow-gold animate-scale-in text-center">
+                <span className="eyebrow text-primary justify-center inline-flex"><span className="gold-divider" /> Table {picked.id}</span>
+                <h3 className="mt-2 font-display text-2xl gold-text">Reserve this table?</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Seats up to {picked.seats}. We'll take you to the booking form with this table pre-selected.
+                </p>
+                <div className="mt-5 flex gap-2 justify-center">
+                  <button
+                    onClick={() => setPicked(null)}
+                    className="rounded-full px-4 py-2 text-sm border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                  >
+                    Keep walking
+                  </button>
+                  <button
+                    onClick={reserveNow}
+                    className="rounded-full px-5 py-2 text-sm bg-primary text-primary-foreground font-medium shadow-gold hover:opacity-90 transition-opacity"
+                  >
+                    Reserve {picked.id} →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="absolute top-3 right-3 md:hidden text-[10px] uppercase tracking-widest text-primary/80 bg-background/60 backdrop-blur px-2 py-1 rounded-full border border-primary/30 z-10">
-            Drag to look · Joystick to walk
+            Drag to look · Tap a table
           </div>
         </div>
       </div>
