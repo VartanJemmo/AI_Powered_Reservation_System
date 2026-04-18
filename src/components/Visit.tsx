@@ -15,7 +15,7 @@ export const Visit = () => (
           <div>
             <dt className="uppercase tracking-widest text-xs text-primary/90">Hours</dt>
             <dd className="mt-1 text-foreground/90">
-              Tue – Sun · 18:00 – 23:00<br />Closed Mondays
+              Open daily · 12:00 – 24:00
             </dd>
           </div>
           <div>
