@@ -313,6 +313,8 @@ const Admin = () => {
               </div>
             ))}
           </div>
+
+          <GuestOrdersPanel tick={tick} />
         </section>
       </div>
     </main>
