@@ -71,14 +71,14 @@ const Player = ({ touchDir }: { touchDir: React.MutableRefObject<{ x: number; y:
 const Floor = () => (
   <mesh rotation-x={-Math.PI / 2} receiveShadow>
     <planeGeometry args={[ROOM.w, ROOM.d]} />
-    <meshStandardMaterial color="#1a0f08" roughness={0.85} metalness={0.05} />
+    <meshStandardMaterial color="#3a2416" roughness={0.8} metalness={0.05} />
   </mesh>
 );
 
 const Ceiling = () => (
   <mesh position={[0, ROOM.h, 0]} rotation-x={Math.PI / 2}>
-    <planeGeometry args={[ROOM.w, ROOM.d]} />
-    <meshStandardMaterial color="#0a0604" roughness={1} />
+    <planeGeometry args={[ROOM.w, ROOM.h]} />
+    <meshStandardMaterial color="#1a120a" roughness={1} />
   </mesh>
 );
 
