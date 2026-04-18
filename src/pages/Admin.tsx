@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
-  SLOT_CAPACITY_VALUE, todayISO, updateReservationStatus, type Reservation,
+  refreshReservations, subscribeReservations,
+  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationStatus,
+  type ReminderLogEntry, type Reservation,
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
 
@@ -40,7 +44,17 @@ const Admin = () => {
     navigate("/login", { replace: true });
   };
 
-  useEffect(() => { document.title = "Admin · Mayrig"; }, []);
+  useEffect(() => {
+    document.title = "Admin · Mayrig";
+    refreshReservations();
+    const unsub = subscribeReservations(() => setTick((t) => t + 1));
+    return () => { unsub(); };
+  }, []);
+
+  const setStatusAsync = async (id: string, s: Reservation["status"]) => {
+    await updateReservationStatus(id, s);
+    setTick((t) => t + 1);
+  };
 
   const dayList = useMemo(
     () =>
