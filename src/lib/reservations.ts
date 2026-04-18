@@ -1,4 +1,8 @@
-// Mock real-time availability + reservation store
+// Supabase-backed reservations + availability.
+// Reservations are now stored server-side so the scheduled reminder job
+// can see them. The same shape is preserved so existing UI keeps working.
+import { supabase } from "@/integrations/supabase/client";
+
 export type Reservation = {
   id: string;
   date: string; // yyyy-mm-dd
@@ -13,8 +17,7 @@ export type Reservation = {
   createdAt: string;
 };
 
-const STORAGE_KEY = "mayrig.reservations.v1";
-const SLOT_CAPACITY = 12; // covers per 30-min slot
+const SLOT_CAPACITY = 12;
 const POPULAR_TIMES = new Set(["19:00", "19:30", "20:00", "20:30"]);
 
 export const ALL_TIMES: string[] = (() => {
@@ -26,45 +29,67 @@ export const ALL_TIMES: string[] = (() => {
   return out;
 })();
 
-export function loadReservations(): Reservation[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Reservation[]) : seed();
-  } catch {
-    return [];
-  }
+// Local cache so synchronous helpers (getSlotsForDate, etc.) keep working.
+// The cache is refreshed by refreshReservations() and after every mutation.
+let cache: Reservation[] = [];
+const subscribers = new Set<() => void>();
+
+function notify() {
+  subscribers.forEach((cb) => cb());
 }
 
-function saveAll(list: Reservation[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+export function subscribeReservations(cb: () => void) {
+  subscribers.add(cb);
+  return () => subscribers.delete(cb);
 }
 
-function seed(): Reservation[] {
-  // Pre-seed some bookings to make availability realistic
-  const today = new Date().toISOString().slice(0, 10);
-  const seeded: Reservation[] = [
-    mk(today, "19:00", 4, "Anush K."),
-    mk(today, "19:00", 2, "Garo M."),
-    mk(today, "19:30", 6, "Lara T."),
-    mk(today, "20:00", 4, "Vahe P."),
-    mk(today, "20:00", 3, "Sona A."),
-    mk(today, "20:30", 5, "Hagop D."),
-    mk(today, "21:00", 2, "Nareh S."),
-  ];
-  saveAll(seeded);
-  return seeded;
-}
+type Row = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  party_size: number;
+  reservation_date: string;
+  reservation_time: string;
+  deposit: boolean;
+  notes: string | null;
+  status: Reservation["status"];
+  created_at: string;
+};
 
-function mk(date: string, time: string, partySize: number, name: string): Reservation {
+function rowToReservation(r: Row): Reservation {
   return {
-    id: crypto.randomUUID(),
-    date, time, partySize, name,
-    phone: "+961 70 000 000",
-    deposit: false,
-    status: "confirmed",
-    createdAt: new Date().toISOString(),
+    id: r.id,
+    date: r.reservation_date,
+    time: r.reservation_time,
+    partySize: r.party_size,
+    name: r.name,
+    phone: r.phone,
+    email: r.email ?? undefined,
+    deposit: r.deposit,
+    notes: r.notes ?? undefined,
+    status: r.status,
+    createdAt: r.created_at,
   };
+}
+
+export async function refreshReservations(): Promise<Reservation[]> {
+  const { data, error } = await supabase
+    .from("reservations")
+    .select("*")
+    .order("reservation_date", { ascending: true })
+    .order("reservation_time", { ascending: true });
+  if (error) {
+    console.error("refreshReservations failed:", error);
+    return cache;
+  }
+  cache = (data as Row[]).map(rowToReservation);
+  notify();
+  return cache;
+}
+
+export function loadReservations(): Reservation[] {
+  return cache;
 }
 
 export type SlotInfo = {
@@ -76,9 +101,8 @@ export type SlotInfo = {
 };
 
 export function getSlotsForDate(date: string, party: number = 2): SlotInfo[] {
-  const all = loadReservations();
   return ALL_TIMES.map((time) => {
-    const booked = all
+    const booked = cache
       .filter((r) => r.date === date && r.time === time && r.status !== "no-show")
       .reduce((s, r) => s + r.partySize, 0);
     const remaining = Math.max(0, SLOT_CAPACITY - booked);
@@ -101,28 +125,59 @@ export function nextAvailable(date: string, party: number, around?: string): Slo
     .map((x) => x.s);
 }
 
-export function createReservation(input: Omit<Reservation, "id" | "createdAt" | "status"> & { status?: Reservation["status"] }): Reservation {
-  const all = loadReservations();
-  const r: Reservation = {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
+export async function createReservation(
+  input: Omit<Reservation, "id" | "createdAt" | "status"> & { status?: Reservation["status"] },
+): Promise<Reservation> {
+  const insertRow = {
+    name: input.name,
+    phone: input.phone,
+    email: input.email ?? null,
+    party_size: input.partySize,
+    reservation_date: input.date,
+    reservation_time: input.time,
+    deposit: input.deposit,
+    notes: input.notes ?? null,
     status: input.status ?? "confirmed",
   };
-  all.push(r);
-  saveAll(all);
+  const { data, error } = await supabase
+    .from("reservations")
+    .insert(insertRow)
+    .select("*")
+    .single();
+  if (error || !data) {
+    console.error("createReservation failed:", error);
+    throw error ?? new Error("Failed to create reservation");
+  }
+  const r = rowToReservation(data as Row);
+  cache = [...cache, r];
+  notify();
   return r;
 }
 
-export function updateReservationStatus(id: string, status: Reservation["status"]) {
-  const all = loadReservations();
-  const next = all.map((r) => (r.id === id ? { ...r, status } : r));
-  saveAll(next);
-  return next;
+export async function updateReservationStatus(id: string, status: Reservation["status"]) {
+  const { error } = await supabase
+    .from("reservations")
+    .update({ status })
+    .eq("id", id);
+  if (error) {
+    console.error("updateReservationStatus failed:", error);
+    return cache;
+  }
+  cache = cache.map((r) => (r.id === id ? { ...r, status } : r));
+  notify();
+  return cache;
 }
 
-export function getReservation(id: string): Reservation | undefined {
-  return loadReservations().find((r) => r.id === id);
+export async function getReservation(id: string): Promise<Reservation | undefined> {
+  const local = cache.find((r) => r.id === id);
+  if (local) return local;
+  const { data, error } = await supabase
+    .from("reservations")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return undefined;
+  return rowToReservation(data as Row);
 }
 
 export function formatDateLong(date: string) {
@@ -137,3 +192,37 @@ export function todayISO() {
 }
 
 export const SLOT_CAPACITY_VALUE = SLOT_CAPACITY;
+
+// Reminder log read for the admin dashboard
+export type ReminderLogEntry = {
+  id: string;
+  reservation_id: string;
+  recipient_email: string | null;
+  status: "dry-run" | "sent" | "failed" | "skipped";
+  channel: string;
+  error_message: string | null;
+  payload: any;
+  created_at: string;
+};
+
+export async function fetchReminderLog(limit = 50): Promise<ReminderLogEntry[]> {
+  const { data, error } = await supabase
+    .from("reminder_log")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error("fetchReminderLog failed:", error);
+    return [];
+  }
+  return data as ReminderLogEntry[];
+}
+
+export async function triggerRemindersNow() {
+  const { data, error } = await supabase.functions.invoke(
+    "send-reservation-reminders",
+    { body: { manual: true } },
+  );
+  if (error) throw error;
+  return data;
+}
