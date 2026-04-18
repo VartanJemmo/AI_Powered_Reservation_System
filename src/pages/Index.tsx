@@ -5,6 +5,7 @@ import { MenuPreview } from "@/components/MenuPreview";
 import { OrderBuilder } from "@/components/OrderBuilder";
 import { Gallery } from "@/components/Gallery";
 import { ReservationWidget } from "@/components/ReservationWidget";
+import { Feedback } from "@/components/Feedback";
 import { Visit } from "@/components/Visit";
 import { Footer } from "@/components/Footer";
 import { StickyReserveBar } from "@/components/StickyReserveBar";
@@ -33,6 +34,7 @@ const Index = () => {
       <OrderBuilder />
       <Gallery />
       <ReservationWidget />
+      <Feedback />
       <Visit />
       <Footer />
       <StickyReserveBar />
