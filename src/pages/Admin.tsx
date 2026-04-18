@@ -4,7 +4,7 @@ import {
   fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
   refreshReservations, SEATING_LABELS, subscribeReservations,
-  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationStatus,
+  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationPartySize, updateReservationStatus,
   type ReminderLogEntry, type Reservation,
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
