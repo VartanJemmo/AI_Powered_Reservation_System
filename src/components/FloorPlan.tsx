@@ -481,7 +481,7 @@ export const FloorPlan = () => {
     }
     sessionStorage.setItem(
       "mayrig.preselected-table",
-      JSON.stringify({ tableId: selectedTable.id, seats: selectedTable.seats, date, time }),
+      JSON.stringify({ tableId: selectedTable.id, seats: selectedTable.seats, date, time, party }),
     );
     toast.success(`Table ${selectedTable.id} held — complete your booking`);
     document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" });
