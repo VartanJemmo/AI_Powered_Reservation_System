@@ -126,22 +126,31 @@ const Admin = () => {
   }, [allReservations]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const qDigits = q.replace(/\D/g, "");
+    const raw = query.trim();
+    const q = raw.toLowerCase();
+    const qDigits = raw.replace(/\D/g, "");
     // When searching, look across ALL dates so the manager can find a guest
     // even if they don't know the day. Otherwise stick to the selected day.
-    const source = q ? allReservations : dayList;
+    const source = raw ? allReservations : dayList;
     return source
       .filter((r) => {
         if (filter !== "all" && r.status !== filter) return false;
-        if (!q) return true;
-        const phoneDigits = r.phone.replace(/\D/g, "");
-        return (
-          r.name.toLowerCase().includes(q) ||
-          r.phone.toLowerCase().includes(q) ||
-          (qDigits.length >= 3 && phoneDigits.includes(qDigits)) ||
-          (r.email ?? "").toLowerCase().includes(q)
-        );
+        if (!raw) return true;
+        const name = (r.name ?? "").toLowerCase();
+        const phone = (r.phone ?? "").toLowerCase();
+        const email = (r.email ?? "").toLowerCase();
+        const phoneDigits = (r.phone ?? "").replace(/\D/g, "");
+
+        // Match each whitespace-separated token (so "john 76" finds John w/ phone 76…)
+        const tokens = q.split(/\s+/).filter(Boolean);
+        return tokens.every((tok) => {
+          const tokDigits = tok.replace(/\D/g, "");
+          if (name.includes(tok)) return true;
+          if (email && email.includes(tok)) return true;
+          if (phone.includes(tok)) return true;
+          if (tokDigits && phoneDigits.includes(tokDigits)) return true;
+          return false;
+        }) || (qDigits.length >= 2 && phoneDigits.includes(qDigits));
       })
       .sort((a, b) =>
         a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
