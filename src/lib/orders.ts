@@ -37,12 +37,6 @@ export type GuestOrder = {
 
 const STORAGE_KEY = "mayrig.orders.v1";
 
-import cocktailNegroni from "@/assets/cocktail-negroni.jpg";
-import cocktailMojito from "@/assets/cocktail-mojito.jpg";
-import cocktailEspressoMartini from "@/assets/cocktail-espresso-martini.jpg";
-import cocktailPomegranateSpritz from "@/assets/cocktail-pomegranate-spritz.jpg";
-import cocktailOldFashioned from "@/assets/cocktail-old-fashioned.jpg";
-
 export const MENU: MenuItem[] = [
   // Food
   { id: "f1", name: "Mezze of the House", desc: "Hummus, muhammara, baba ganoush, lavash", price: 28, category: "food" },
