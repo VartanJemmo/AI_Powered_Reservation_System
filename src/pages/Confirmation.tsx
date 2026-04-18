@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { formatDateLong, getReservation, SEATING_LABELS, type Reservation } from "@/lib/reservations";
+import { toast } from "sonner";
+import {
+  formatDateLong,
+  getReservation,
+  SEATING_LABELS,
+  updateReservationPartySize,
+  type Reservation,
+} from "@/lib/reservations";
 import { Logo } from "@/components/Logo";
 
 const Confirmation = () => {
   const { id } = useParams();
   const [r, setR] = useState<Reservation | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(2);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     document.title = "Reservation confirmed · Mayrig";
@@ -16,11 +26,35 @@ const Confirmation = () => {
       const found = await getReservation(id);
       if (!cancelled) {
         setR(found);
+        if (found) setDraft(found.partySize);
         setLoading(false);
       }
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  const beginEdit = () => {
+    if (!r) return;
+    setDraft(r.partySize);
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!r || saving) return;
+    if (draft === r.partySize) { setEditing(false); return; }
+    setSaving(true);
+    try {
+      const updated = await updateReservationPartySize(r.id, draft);
+      if (updated) setR(updated);
+      toast.success(`Party size updated to ${draft}.`);
+      setEditing(false);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not update party size. Please call us.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,7 +108,68 @@ const Confirmation = () => {
           <div className="grid grid-cols-2 gap-5 text-sm">
             <Cell k="Date" v={formatDateLong(r.date)} />
             <Cell k="Time" v={isWait ? "Waitlist" : r.time} />
-            <Cell k="Party" v={`${r.partySize} ${r.partySize === 1 ? "guest" : "guests"}`} />
+
+            {/* Editable party size */}
+            <div className="col-span-2 sm:col-span-1">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] uppercase tracking-widest text-primary/90">Party</div>
+                {!editing && (
+                  <button
+                    type="button"
+                    onClick={beginEdit}
+                    className="text-[10px] uppercase tracking-widest text-primary hover:underline"
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
+              {editing ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-1">
+                    <button
+                      type="button"
+                      aria-label="Decrease guests"
+                      onClick={() => setDraft((d) => Math.max(1, d - 1))}
+                      disabled={saving || draft <= 1}
+                      className="h-6 w-6 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      −
+                    </button>
+                    <span className="min-w-[2ch] text-center font-medium">{draft}</span>
+                    <button
+                      type="button"
+                      aria-label="Increase guests"
+                      onClick={() => setDraft((d) => Math.min(20, d + 1))}
+                      disabled={saving || draft >= 20}
+                      className="h-6 w-6 grid place-items-center rounded-full hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveEdit}
+                    disabled={saving}
+                    className="rounded-full bg-gradient-gold text-primary-foreground px-3 py-1 text-xs uppercase tracking-widest font-medium shadow-gold disabled:opacity-50"
+                  >
+                    {saving ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditing(false); setDraft(r.partySize); }}
+                    disabled={saving}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1 text-foreground">
+                  {r.partySize} {r.partySize === 1 ? "guest" : "guests"}
+                </div>
+              )}
+            </div>
+
             <Cell k="Name" v={r.name} />
             <Cell k="Phone" v={r.phone} />
             {r.email && <Cell k="Email" v={r.email} />}
