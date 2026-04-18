@@ -440,6 +440,7 @@ export const FloorPlan = () => {
   const [selected, setSelected] = useState<string | null>(null);
   const [date, setDate] = useState<string>(todayISO());
   const [time, setTime] = useState<string>("19:30");
+  const [party, setParty] = useState<number>(2);
   const [tick, setTick] = useState(0);
 
   const dates = useMemo(() => buildDateOptions(14), []);
