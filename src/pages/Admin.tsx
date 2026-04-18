@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
+import { AdminFloorPlan } from "@/components/admin/AdminFloorPlan";
 
 type Tab = "reservations" | "feedback";
 
@@ -338,6 +339,8 @@ const Admin = () => {
               );
             })}
           </div>
+
+          <AdminFloorPlan date={date} reservations={dayList} />
 
           <div className="mt-10 flex items-end justify-between gap-4">
             <h2 className="font-display text-xl">
