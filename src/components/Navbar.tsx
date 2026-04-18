@@ -36,11 +36,22 @@ export const Navbar = () => {
               {l.label}
             </a>
           ))}
+          {user?.role === "guest" && (
+            <Link to="/my-reservations" className="hover:text-foreground transition-colors">My reservations</Link>
+          )}
           {user?.role === "admin" && (
             <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
           )}
         </nav>
         <div className="flex items-center gap-2 shrink-0">
+          {user?.role === "guest" && (
+            <Link
+              to="/my-reservations"
+              className="lg:hidden rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+            >
+              My bookings
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link
               to="/admin"

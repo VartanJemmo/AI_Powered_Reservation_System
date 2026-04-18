@@ -9,6 +9,7 @@ import Confirmation from "./pages/Confirmation.tsx";
 import Admin from "./pages/Admin.tsx";
 import Login from "./pages/Login.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import MyReservations from "./pages/MyReservations.tsx";
 import { AuthProvider } from "@/lib/auth";
 import { RequireAuth } from "@/components/RequireAuth";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
             <Route path="/confirmation/:id" element={<RequireAuth><Confirmation /></RequireAuth>} />
+            <Route path="/my-reservations" element={<RequireAuth><MyReservations /></RequireAuth>} />
             <Route path="/admin" element={<RequireAuth role="admin"><Admin /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
