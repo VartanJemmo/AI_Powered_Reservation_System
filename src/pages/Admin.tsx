@@ -443,5 +443,113 @@ const GuestOrdersPanel = ({ tick }: { tick: number }) => {
   );
 };
 
+const RemindersPanel = ({ tick }: { tick: number }) => {
+  const [log, setLog] = useState<ReminderLogEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [running, setRunning] = useState(false);
+
+  const reload = async () => {
+    setLoading(true);
+    const next = await fetchReminderLog(50);
+    setLog(next);
+    setLoading(false);
+  };
+
+  useEffect(() => { reload(); }, [tick]);
+
+  const runNow = async () => {
+    setRunning(true);
+    try {
+      const res = await triggerRemindersNow();
+      toast.success(
+        `Reminder check ran — ${res?.processed ?? 0} reminder${res?.processed === 1 ? "" : "s"} processed (dry-run).`,
+      );
+      await reload();
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not run the reminder job.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="mt-12">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="font-display text-xl">
+            Reminder log
+            <span className="text-muted-foreground text-sm font-sans ml-2">({log.length})</span>
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Dry-run mode · runs every 5 min, ~2h before each booking. Add an email domain to enable real sending.
+          </p>
+        </div>
+        <button
+          onClick={runNow}
+          disabled={running}
+          className="text-xs rounded-full border border-primary/40 bg-primary/10 text-primary px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50"
+        >
+          {running ? "Running…" : "Run reminders now"}
+        </button>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-border overflow-hidden">
+        {loading && log.length === 0 && (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</div>
+        )}
+        {!loading && log.length === 0 && (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            No reminders yet. Bookings ~2h out will appear here once the cron runs.
+          </div>
+        )}
+        {log.map((entry) => {
+          const p = entry.payload ?? {};
+          return (
+            <div
+              key={entry.id}
+              className="grid grid-cols-[1fr_auto] gap-3 px-4 lg:px-5 py-3 border-t border-border first:border-t-0 items-center text-sm"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium">{p.name ?? "Guest"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {p.date} · {p.time} · party {p.partySize}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  → {entry.recipient_email ?? "no email"}
+                  {entry.error_message ? ` · ${entry.error_message}` : ""}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <ReminderStatusPill status={entry.status} />
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                  {new Date(entry.created_at).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const ReminderStatusPill = ({ status }: { status: ReminderLogEntry["status"] }) => {
+  const map: Record<ReminderLogEntry["status"], string> = {
+    "dry-run": "bg-primary/15 text-primary border-primary/30",
+    sent: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+    failed: "bg-destructive/15 text-destructive border-destructive/30",
+    skipped: "bg-muted text-muted-foreground border-border",
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-widest ${map[status]}`}>
+      {status}
+    </span>
+  );
+};
+
 export default Admin;
+
 
