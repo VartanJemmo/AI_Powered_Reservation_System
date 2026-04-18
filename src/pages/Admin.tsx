@@ -12,6 +12,9 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
+
+type Tab = "reservations" | "feedback";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
 
@@ -39,6 +42,7 @@ const Admin = () => {
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<Tab>("reservations");
 
   const handleLogout = () => {
     logout();
