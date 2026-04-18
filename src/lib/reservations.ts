@@ -197,6 +197,24 @@ export async function updateReservationStatus(id: string, status: Reservation["s
   return cache;
 }
 
+export async function updateReservationPartySize(id: string, partySize: number): Promise<Reservation | undefined> {
+  const size = Math.max(1, Math.min(20, Math.floor(partySize)));
+  const { data, error } = await supabase
+    .from("reservations")
+    .update({ party_size: size })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    console.error("updateReservationPartySize failed:", error);
+    throw error ?? new Error("Failed to update party size");
+  }
+  const r = rowToReservation(data as Row);
+  cache = cache.map((x) => (x.id === id ? r : x));
+  notify();
+  return r;
+}
+
 export async function getReservation(id: string): Promise<Reservation | undefined> {
   const local = cache.find((r) => r.id === id);
   if (local) return local;
