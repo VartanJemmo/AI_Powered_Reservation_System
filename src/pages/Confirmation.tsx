@@ -1,15 +1,34 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { formatDateLong, getReservation } from "@/lib/reservations";
+import { formatDateLong, getReservation, type Reservation } from "@/lib/reservations";
 import { Logo } from "@/components/Logo";
 
 const Confirmation = () => {
   const { id } = useParams();
-  const r = useMemo(() => (id ? getReservation(id) : undefined), [id]);
+  const [r, setR] = useState<Reservation | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = "Reservation confirmed · Mayrig";
-  }, []);
+    let cancelled = false;
+    (async () => {
+      if (!id) { setLoading(false); return; }
+      const found = await getReservation(id);
+      if (!cancelled) {
+        setR(found);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-6 text-center">
+        <p className="text-muted-foreground">Loading your reservation…</p>
+      </main>
+    );
+  }
 
   if (!r) {
     return (
