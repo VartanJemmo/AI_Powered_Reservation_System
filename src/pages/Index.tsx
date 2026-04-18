@@ -9,6 +9,7 @@ import { Visit } from "@/components/Visit";
 import { Footer } from "@/components/Footer";
 import { StickyReserveBar } from "@/components/StickyReserveBar";
 import { useEffect } from "react";
+import { refreshReservations } from "@/lib/reservations";
 
 const Index = () => {
   useEffect(() => {
@@ -20,6 +21,7 @@ const Index = () => {
     let l = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!l) { l = document.createElement("link"); l.setAttribute("rel", "canonical"); document.head.appendChild(l); }
     l.setAttribute("href", window.location.origin + "/");
+    refreshReservations();
   }, []);
 
   return (
