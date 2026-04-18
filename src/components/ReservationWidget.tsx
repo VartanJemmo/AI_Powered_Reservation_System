@@ -84,15 +84,16 @@ export const ReservationWidget = () => {
   return (
     <section id="reserve" className="relative py-20 sm:py-28">
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-50 pointer-events-none" aria-hidden />
-      <div className="container-narrow relative">
+      <div className="container-wide relative">
         <div className="text-center max-w-xl mx-auto">
           <span className="eyebrow justify-center"><span className="gold-divider" /> Reservations</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Reserve your table</h2>
           <p className="mt-3 text-muted-foreground">Real-time availability — takes under a minute.</p>
         </div>
 
-        <div className="mt-10 mx-auto max-w-2xl glass-card overflow-hidden">
-          <Stepper step={step} />
+        <div className="mt-10 mx-auto grid lg:grid-cols-[1fr_360px] gap-6 max-w-5xl items-start">
+          <div className="glass-card overflow-hidden">
+            <Stepper step={step} />
 
           <div className="p-5 sm:p-7">
             {step === 1 && (
