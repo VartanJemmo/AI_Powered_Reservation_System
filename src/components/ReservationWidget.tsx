@@ -10,6 +10,7 @@ import {
   type SlotInfo,
 } from "@/lib/reservations";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -34,16 +35,27 @@ function buildDateOptions(days = 14) {
 
 export const ReservationWidget = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [date, setDate] = useState<string>(todayISO());
   const [party, setParty] = useState<number>(2);
   const [time, setTime] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(user?.name ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [notes, setNotes] = useState("");
   const [deposit, setDeposit] = useState(false);
   const [waitlist, setWaitlist] = useState(false);
+
+  // If the user logs in mid-flow, prefill empty fields
+  useEffect(() => {
+    if (user?.role === "guest") {
+      if (!name && user.name) setName(user.name);
+      if (!phone && user.phone) setPhone(user.phone);
+      if (!email && user.email) setEmail(user.email);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const dates = useMemo(() => buildDateOptions(14), []);
   const slots = useMemo<SlotInfo[]>(() => getSlotsForDate(date, party), [date, party]);

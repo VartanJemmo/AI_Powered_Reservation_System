@@ -7,6 +7,9 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Confirmation from "./pages/Confirmation.tsx";
 import Admin from "./pages/Admin.tsx";
+import Login from "./pages/Login.tsx";
+import { AuthProvider } from "@/lib/auth";
+import { RequireAuth } from "@/components/RequireAuth";
 
 const queryClient = new QueryClient();
 
@@ -16,13 +19,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/confirmation/:id" element={<Confirmation />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
+            <Route path="/confirmation/:id" element={<RequireAuth><Confirmation /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth role="admin"><Admin /></RequireAuth>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
