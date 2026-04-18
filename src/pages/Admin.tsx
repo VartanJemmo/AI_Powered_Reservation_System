@@ -27,10 +27,17 @@ function buildDateStrip(days = 14) {
 }
 
 const Admin = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [date, setDate] = useState(todayISO());
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   useEffect(() => { document.title = "Admin · Mayrig"; }, []);
 
