@@ -509,6 +509,13 @@ const Admin = () => {
                 <div><StatusPill status={r.status} /></div>
                 <div className="flex lg:justify-end gap-2 flex-wrap">
                   <button
+                    onClick={() => setEditing(r)}
+                    className="text-xs rounded-full border border-border px-3 py-1.5 hover:border-primary/40 hover:text-primary transition-colors"
+                    title="Edit reservation"
+                  >
+                    Edit
+                  </button>
+                  <button
                     onClick={() => setStatus(r.id, r.status === "seated" ? "confirmed" : "seated")}
                     className="text-xs rounded-full border border-border px-3 py-1.5 hover:border-primary/40 transition-colors"
                   >
@@ -533,6 +540,13 @@ const Admin = () => {
                       Cancel
                     </button>
                   )}
+                  <button
+                    onClick={() => handleDelete(r)}
+                    className="text-xs rounded-full border border-destructive/40 text-destructive px-3 py-1.5 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    title="Permanently delete reservation"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -543,6 +557,14 @@ const Admin = () => {
           <GuestOrdersPanel tick={tick} />
         </section>
       </div>
+      )}
+
+      {editing && (
+        <EditReservationModal
+          reservation={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => setEditing(null)}
+        />
       )}
     </main>
   );
