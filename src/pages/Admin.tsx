@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  deleteReservation,
   fetchReminderLog,
   formatDateLong, getSlotsForDate, loadReservations,
   refreshReservations, SEATING_LABELS, subscribeReservations,
-  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservationPartySize, updateReservationStatus,
-  type ReminderLogEntry, type Reservation,
+  SLOT_CAPACITY_VALUE, todayISO, triggerRemindersNow, updateReservation, updateReservationPartySize, updateReservationStatus,
+  type ReminderLogEntry, type Reservation, type Seating,
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
@@ -44,6 +45,18 @@ const Admin = () => {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("reservations");
+  const [editing, setEditing] = useState<Reservation | null>(null);
+
+  const handleDelete = async (r: Reservation) => {
+    if (!confirm(`Delete reservation for ${r.name} (${r.date} ${r.time})? This cannot be undone.`)) return;
+    try {
+      await deleteReservation(r.id);
+      toast.success("Reservation deleted.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not delete reservation.");
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -496,6 +509,13 @@ const Admin = () => {
                 <div><StatusPill status={r.status} /></div>
                 <div className="flex lg:justify-end gap-2 flex-wrap">
                   <button
+                    onClick={() => setEditing(r)}
+                    className="text-xs rounded-full border border-border px-3 py-1.5 hover:border-primary/40 hover:text-primary transition-colors"
+                    title="Edit reservation"
+                  >
+                    Edit
+                  </button>
+                  <button
                     onClick={() => setStatus(r.id, r.status === "seated" ? "confirmed" : "seated")}
                     className="text-xs rounded-full border border-border px-3 py-1.5 hover:border-primary/40 transition-colors"
                   >
@@ -520,6 +540,13 @@ const Admin = () => {
                       Cancel
                     </button>
                   )}
+                  <button
+                    onClick={() => handleDelete(r)}
+                    className="text-xs rounded-full border border-destructive/40 text-destructive px-3 py-1.5 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    title="Permanently delete reservation"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -530,6 +557,14 @@ const Admin = () => {
           <GuestOrdersPanel tick={tick} />
         </section>
       </div>
+      )}
+
+      {editing && (
+        <EditReservationModal
+          reservation={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => setEditing(null)}
+        />
       )}
     </main>
   );
@@ -584,6 +619,193 @@ const PartySizeStepper = ({ reservation }: { reservation: Reservation }) => {
     </div>
   );
 };
+
+const EditReservationModal = ({
+  reservation,
+  onClose,
+  onSaved,
+}: {
+  reservation: Reservation;
+  onClose: () => void;
+  onSaved: () => void;
+}) => {
+  const [partySize, setPartySize] = useState(reservation.partySize);
+  const [time, setTime] = useState(reservation.time);
+  const [date, setDate] = useState(reservation.date);
+  const [seating, setSeating] = useState<Seating>(reservation.seating);
+  const [notes, setNotes] = useState(reservation.notes ?? "");
+  const [phone, setPhone] = useState(reservation.phone);
+  const [email, setEmail] = useState(reservation.email ?? "");
+  const [name, setName] = useState(reservation.name);
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await updateReservation(reservation.id, {
+        partySize,
+        time,
+        date,
+        seating,
+        notes,
+        phone,
+        email,
+        name,
+      });
+      toast.success("Reservation updated.");
+      onSaved();
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not save changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-display text-2xl">Edit reservation</h3>
+            <p className="text-xs text-muted-foreground mt-1">{reservation.name}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-full grid place-items-center text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-4 text-sm">
+          <Field label="Guests">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-2 py-1">
+              <button
+                type="button"
+                onClick={() => setPartySize((n) => Math.max(1, n - 1))}
+                disabled={saving || partySize <= 1}
+                className="h-7 w-7 grid place-items-center rounded-full hover:bg-background disabled:opacity-40"
+                aria-label="Decrease guests"
+              >
+                −
+              </button>
+              <span className="min-w-[2ch] text-center font-medium">{partySize}</span>
+              <button
+                type="button"
+                onClick={() => setPartySize((n) => Math.min(20, n + 1))}
+                disabled={saving || partySize >= 20}
+                className="h-7 w-7 grid place-items-center rounded-full hover:bg-background disabled:opacity-40"
+                aria-label="Increase guests"
+              >
+                +
+              </button>
+            </div>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Date">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+              />
+            </Field>
+            <Field label="Time">
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+              />
+            </Field>
+          </div>
+
+          <Field label="Seating">
+            <select
+              value={seating}
+              onChange={(e) => setSeating(e.target.value as Seating)}
+              className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+            >
+              <option value="indoor-non-smoking">Indoor · Non-smoking</option>
+              <option value="outdoor-smoking">Outdoor · Smoking</option>
+            </select>
+          </Field>
+
+          <Field label="Name">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Phone">
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
+              />
+            </Field>
+          </div>
+
+          <Field label="Notes">
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full rounded-lg border border-border bg-input/60 px-3 py-2"
+            />
+          </Field>
+        </div>
+
+        <div className="mt-6 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="text-xs rounded-full border border-border px-4 py-2 hover:border-primary/40 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="text-xs rounded-full bg-gradient-gold text-primary-foreground px-5 py-2 uppercase tracking-widest font-medium shadow-gold disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <label className="block">
+    <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">{label}</div>
+    {children}
+  </label>
+);
 
 const StatusPill = ({ status }: { status: Reservation["status"] }) => {
   const map: Record<Reservation["status"], string> = {

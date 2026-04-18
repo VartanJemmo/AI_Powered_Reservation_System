@@ -215,6 +215,46 @@ export async function updateReservationPartySize(id: string, partySize: number):
   return r;
 }
 
+export async function updateReservation(
+  id: string,
+  patch: Partial<Pick<Reservation, "partySize" | "notes" | "time" | "date" | "seating" | "phone" | "email" | "name">>,
+): Promise<Reservation | undefined> {
+  const update: Record<string, unknown> = {};
+  if (patch.partySize !== undefined) update.party_size = Math.max(1, Math.min(20, Math.floor(patch.partySize)));
+  if (patch.notes !== undefined) update.notes = patch.notes || null;
+  if (patch.time !== undefined) update.reservation_time = patch.time;
+  if (patch.date !== undefined) update.reservation_date = patch.date;
+  if (patch.seating !== undefined) update.seating = patch.seating;
+  if (patch.phone !== undefined) update.phone = patch.phone;
+  if (patch.email !== undefined) update.email = patch.email || null;
+  if (patch.name !== undefined) update.name = patch.name;
+  if (Object.keys(update).length === 0) return cache.find((r) => r.id === id);
+  const { data, error } = await supabase
+    .from("reservations")
+    .update(update as never)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    console.error("updateReservation failed:", error);
+    throw error ?? new Error("Failed to update reservation");
+  }
+  const r = rowToReservation(data as Row);
+  cache = cache.map((x) => (x.id === id ? r : x));
+  notify();
+  return r;
+}
+
+export async function deleteReservation(id: string): Promise<void> {
+  const { error } = await supabase.from("reservations").delete().eq("id", id);
+  if (error) {
+    console.error("deleteReservation failed:", error);
+    throw error;
+  }
+  cache = cache.filter((r) => r.id !== id);
+  notify();
+}
+
 export async function getReservation(id: string): Promise<Reservation | undefined> {
   const local = cache.find((r) => r.id === id);
   if (local) return local;
