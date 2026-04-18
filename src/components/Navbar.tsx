@@ -38,8 +38,8 @@ export const Navbar = () => {
         </nav>
         <div className="flex items-center gap-2">
           {user && (
-            <div className="hidden sm:flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5">
                 <span className={`h-1.5 w-1.5 rounded-full ${user.role === "admin" ? "bg-primary" : "bg-emerald-400"}`} />
                 <span className="text-muted-foreground">
                   {user.role === "admin" ? "Manager" : user.name?.split(" ")[0] ?? "Guest"}
@@ -47,10 +47,14 @@ export const Navbar = () => {
               </span>
               <button
                 onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground transition-colors px-2"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
                 aria-label="Sign out"
+                title="Sign out"
               >
-                Sign out
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M15 17l5-5-5-5M20 12H9M12 19a7 7 0 1 1 0-14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
           )}

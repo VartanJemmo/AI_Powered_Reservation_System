@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   formatDateLong, getSlotsForDate, loadReservations,
   SLOT_CAPACITY_VALUE, todayISO, updateReservationStatus, type Reservation,
 } from "@/lib/reservations";
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/auth";
 
 type Filter = "all" | "confirmed" | "seated" | "no-show" | "waitlist";
 
@@ -26,10 +27,17 @@ function buildDateStrip(days = 14) {
 }
 
 const Admin = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [date, setDate] = useState(todayISO());
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   useEffect(() => { document.title = "Admin · Mayrig"; }, []);
 
@@ -105,6 +113,16 @@ const Admin = () => {
               onChange={(e) => setDate(e.target.value)}
               className="h-9 rounded-lg border border-border bg-input/60 px-3 text-sm"
             />
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-border bg-secondary/40 px-3 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+              aria-label="Sign out"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M15 17l5-5-5-5M20 12H9M12 19a7 7 0 1 1 0-14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
           </div>
         </div>
       </header>
