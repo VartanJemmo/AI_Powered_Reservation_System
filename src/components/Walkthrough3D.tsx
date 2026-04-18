@@ -152,24 +152,73 @@ const Table = ({
   position,
   rotation = 0,
   shape = "round",
+  id,
+  seats: seatCount,
+  onSelect,
 }: {
   position: [number, number, number];
   rotation?: number;
   shape?: "round" | "rect";
+  id: string;
+  seats: number;
+  onSelect: (t: { id: string; seats: number }) => void;
 }) => {
-  const seats = shape === "round" ? 4 : 6;
+  const seats = seatCount;
+  const [hovered, setHovered] = useState(false);
+  const ringRef = useRef<THREE.Mesh>(null!);
+  useFrame(() => {
+    if (ringRef.current) {
+      const m = ringRef.current.material as THREE.MeshBasicMaterial;
+      m.opacity = hovered
+        ? 0.85
+        : 0.35 + Math.sin(performance.now() * 0.004) * 0.15;
+    }
+  });
+
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
+    <group
+      position={position}
+      rotation={[0, rotation, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = "";
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect({ id, seats });
+      }}
+    >
+      {/* Glowing reserve ring on the floor */}
+      <mesh ref={ringRef} rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
+        <ringGeometry args={[1.35, 1.55, 48]} />
+        <meshBasicMaterial color="#c9821f" transparent opacity={0.4} side={THREE.DoubleSide} />
+      </mesh>
+
       {/* Tablecloth */}
       {shape === "round" ? (
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.85, 0.85, 0.05, 32]} />
-          <meshStandardMaterial color="#f3ead7" roughness={0.85} />
+          <meshStandardMaterial
+            color={hovered ? "#fff5dc" : "#f3ead7"}
+            emissive={hovered ? "#c9821f" : "#000000"}
+            emissiveIntensity={hovered ? 0.25 : 0}
+            roughness={0.85}
+          />
         </mesh>
       ) : (
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <boxGeometry args={[2.2, 0.05, 1.1]} />
-          <meshStandardMaterial color="#f3ead7" roughness={0.85} />
+          <meshStandardMaterial
+            color={hovered ? "#fff5dc" : "#f3ead7"}
+            emissive={hovered ? "#c9821f" : "#000000"}
+            emissiveIntensity={hovered ? 0.25 : 0}
+            roughness={0.85}
+          />
         </mesh>
       )}
       {/* Pedestal */}
@@ -179,6 +228,18 @@ const Table = ({
       </mesh>
       {/* Candle on top */}
       <Candle position={[0, 0.78, 0]} />
+      {/* Floating label */}
+      <Html position={[0, 1.6, 0]} center distanceFactor={8} occlude={false}>
+        <div
+          className={`pointer-events-none select-none whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-widest font-display transition-all ${
+            hovered
+              ? "bg-primary text-primary-foreground border-primary shadow-gold scale-110"
+              : "bg-background/80 text-primary border-primary/40 backdrop-blur"
+          }`}
+        >
+          {id} · {seats}p · {hovered ? "Reserve →" : "Tap to reserve"}
+        </div>
+      </Html>
       {/* Wine glass */}
       <mesh position={[shape === "round" ? 0.35 : 0.7, 0.88, 0.2]}>
         <coneGeometry args={[0.06, 0.18, 12, 1, true]} />
