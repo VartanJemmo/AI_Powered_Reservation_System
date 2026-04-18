@@ -6,7 +6,9 @@ import {
   formatDateLong,
   getSlotsForDate,
   nextAvailable,
+  SEATING_LABELS,
   todayISO,
+  type Seating,
   type SlotInfo,
 } from "@/lib/reservations";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +48,7 @@ export const ReservationWidget = () => {
   const [email, setEmail] = useState(user?.email ?? "");
   const [notes, setNotes] = useState("");
   const [deposit, setDeposit] = useState(false);
+  const [seating, setSeating] = useState<Seating>("indoor-non-smoking");
   const [waitlist, setWaitlist] = useState(false);
 
   // If the user logs in mid-flow, prefill empty fields
@@ -90,6 +93,7 @@ export const ReservationWidget = () => {
         email: email.trim() || undefined,
         notes: notes.trim() || undefined,
         deposit,
+        seating,
         status: asWaitlist ? "waitlist" : "confirmed",
       });
 
@@ -109,6 +113,8 @@ export const ReservationWidget = () => {
                 partySize: r.partySize,
                 deposit: r.deposit,
                 notes: r.notes,
+                seating: r.seating,
+                seatingLabel: SEATING_LABELS[r.seating],
                 status: r.status,
               },
             },
