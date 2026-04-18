@@ -1,4 +1,10 @@
 // Mock orders store — saves what each guest selected (food, drinks, desserts)
+import cocktailNegroni from "@/assets/cocktail-negroni.jpg";
+import cocktailMojito from "@/assets/cocktail-mojito.jpg";
+import cocktailEspressoMartini from "@/assets/cocktail-espresso-martini.jpg";
+import cocktailPomegranateSpritz from "@/assets/cocktail-pomegranate-spritz.jpg";
+import cocktailOldFashioned from "@/assets/cocktail-old-fashioned.jpg";
+
 export type MenuCategory = "food" | "drinks" | "desserts";
 
 export type MenuItem = {
@@ -30,12 +36,6 @@ export type GuestOrder = {
 };
 
 const STORAGE_KEY = "mayrig.orders.v1";
-
-import cocktailNegroni from "@/assets/cocktail-negroni.jpg";
-import cocktailMojito from "@/assets/cocktail-mojito.jpg";
-import cocktailEspressoMartini from "@/assets/cocktail-espresso-martini.jpg";
-import cocktailPomegranateSpritz from "@/assets/cocktail-pomegranate-spritz.jpg";
-import cocktailOldFashioned from "@/assets/cocktail-old-fashioned.jpg";
 
 export const MENU: MenuItem[] = [
   // Food
