@@ -372,37 +372,51 @@ type SceneProps = {
   hovered: string | null;
   selected: string | null;
   bookedSet: Set<string>;
+  party: number;
   setHovered: (id: string | null) => void;
   onPick: (id: string) => void;
 };
 
-const Scene = ({ hovered, selected, bookedSet, setHovered, onPick }: SceneProps) => (
-  <>
-    <ambientLight intensity={0.15} color={GOLD_GLOW} />
-    <directionalLight position={[5, 8, 5]} intensity={0.3} color={GOLD_GLOW} castShadow />
+const Scene = ({ hovered, selected, bookedSet, party, setHovered, onPick }: SceneProps) => {
+  // Smallest seat count that still fits the party
+  const minFit = Math.min(
+    ...TABLES.filter((t) => t.seats >= party && !bookedSet.has(t.id)).map((t) => t.seats),
+    Infinity,
+  );
+  return (
+    <>
+      <ambientLight intensity={0.15} color={GOLD_GLOW} />
+      <directionalLight position={[5, 8, 5]} intensity={0.3} color={GOLD_GLOW} castShadow />
 
-    <Chandelier position={[-3, 3.2, 0]} />
-    <Chandelier position={[3, 3.2, 0]} />
+      <Chandelier position={[-3, 3.2, 0]} />
+      <Chandelier position={[3, 3.2, 0]} />
 
-    <Floor />
-    <Walls />
+      <Floor />
+      <Walls />
 
-    {TABLES.map((t) => (
-      <Table
-        key={t.id}
-        data={t}
-        hovered={hovered === t.id}
-        selected={selected === t.id}
-        booked={bookedSet.has(t.id)}
-        onHover={setHovered}
-        onClick={onPick}
-      />
-    ))}
+      {TABLES.map((t) => {
+        const tooSmall = t.seats < party;
+        const bestFit = !tooSmall && !bookedSet.has(t.id) && t.seats === minFit;
+        return (
+          <Table
+            key={t.id}
+            data={t}
+            hovered={hovered === t.id}
+            selected={selected === t.id}
+            booked={bookedSet.has(t.id)}
+            tooSmall={tooSmall}
+            bestFit={bestFit}
+            onHover={setHovered}
+            onClick={onPick}
+          />
+        );
+      })}
 
-    <ContactShadows position={[0, 0.01, 0]} opacity={0.6} scale={20} blur={2} far={4} />
-    <Environment preset="night" />
-  </>
-);
+      <ContactShadows position={[0, 0.01, 0]} opacity={0.6} scale={20} blur={2} far={4} />
+      <Environment preset="night" />
+    </>
+  );
+};
 
 function buildDateOptions(days = 14) {
   const out: { iso: string; weekday: string; day: number; month: string }[] = [];
