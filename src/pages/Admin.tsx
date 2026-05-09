@@ -740,8 +740,9 @@ const EditReservationModal = ({
               onChange={(e) => setSeating(e.target.value as Seating)}
               className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
             >
-              <option value="indoor-non-smoking">Indoor · Non-smoking</option>
-              <option value="outdoor-smoking">Outdoor · Smoking</option>
+              <option value="non-smoking">Non-smoking</option>
+              <option value="smoking">Smoking</option>
+              <option value="outdoor">Outdoor</option>
             </select>
           </Field>
 
