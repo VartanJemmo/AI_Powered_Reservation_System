@@ -674,10 +674,10 @@ export const Walkthrough3D = () => {
           {picked && (
             <div className="absolute inset-0 z-30 grid place-items-center bg-background/75 backdrop-blur-sm animate-fade-in">
               <div className="max-w-sm w-[90%] rounded-2xl border border-primary/40 bg-card p-6 shadow-gold animate-scale-in text-center">
-                <span className="eyebrow text-primary justify-center inline-flex"><span className="gold-divider" /> Table {picked.id}</span>
+                <span className="eyebrow text-primary justify-center inline-flex"><span className="gold-divider" /> Table {picked.id} · {SECTION_META[picked.section].label}</span>
                 <h3 className="mt-2 font-display text-2xl gold-text">Reserve this table?</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Seats up to {picked.seats}. We'll take you to the booking form with this table pre-selected.
+                  Seats up to {picked.seats} in our <strong className="text-foreground">{SECTION_META[picked.section].label}</strong> section. We'll take you to the booking form with everything pre-selected.
                 </p>
                 <div className="mt-5 flex gap-2 justify-center">
                   <button
