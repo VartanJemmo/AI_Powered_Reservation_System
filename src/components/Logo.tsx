@@ -4,8 +4,8 @@ import { useAuth } from "@/lib/auth";
 export const Logo = ({ className = "" }: { className?: string }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useAuth();
-  const home = role === "admin" ? "/admin" : "/";
+  const { user } = useAuth();
+  const home = user?.role === "admin" ? "/admin" : "/";
   const onClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (location.pathname !== home) {
