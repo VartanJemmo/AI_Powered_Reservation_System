@@ -19,17 +19,18 @@ interface ReservationReminderProps {
   date?: string
   time?: string
   partySize?: number
-  seating?: 'indoor-non-smoking' | 'outdoor-smoking'
+  seating?: 'non-smoking' | 'smoking' | 'outdoor'
   seatingLabel?: string
 }
 
 const seatingDisplay = (
-  seating?: 'indoor-non-smoking' | 'outdoor-smoking',
+  seating?: 'non-smoking' | 'smoking' | 'outdoor',
   seatingLabel?: string,
 ) => {
   if (seatingLabel) return seatingLabel
-  if (seating === 'outdoor-smoking') return 'Outdoor · Smoking'
-  if (seating === 'indoor-non-smoking') return 'Indoor · Non-smoking'
+  if (seating === 'outdoor') return 'Outdoor'
+  if (seating === 'smoking') return 'Smoking'
+  if (seating === 'non-smoking') return 'Non-smoking'
   return ''
 }
 
