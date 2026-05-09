@@ -262,38 +262,34 @@ const Admin = () => {
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           <div>
             <h2 className="font-display text-xl">Pick a day</h2>
-            <p className="text-xs text-muted-foreground mt-1">Next 14 days</p>
-            <div className="mt-4 grid grid-cols-7 lg:grid-cols-4 gap-2">
-              {dateStrip.map((d, i) => {
-                const active = d.iso === date;
-                const count = countByDate.get(d.iso) ?? 0;
-                return (
-                  <button
-                    key={d.iso}
-                    onClick={() => setDate(d.iso)}
-                    className={`relative rounded-xl border px-1 py-2 text-center transition-all ${
-                      active
-                        ? "bg-gradient-gold text-primary-foreground border-transparent shadow-gold"
-                        : "border-border bg-secondary/40 hover:border-primary/40"
-                    }`}
-                  >
-                    <div className="text-[9px] uppercase tracking-widest opacity-80">{d.weekday}</div>
-                    <div className="font-display text-lg leading-none mt-1">{d.day}</div>
-                    <div className="text-[9px] uppercase tracking-widest opacity-80 mt-0.5">{d.month}</div>
-                    {count > 0 && (
-                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-medium grid place-items-center ${
-                        active ? "bg-background text-primary" : "bg-primary text-primary-foreground"
-                      }`}>
-                        {count}
-                      </span>
-                    )}
-                    {i === 0 && !active && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] uppercase tracking-widest text-primary">Today</span>
-                    )}
-                  </button>
-                );
-              })}
+            <p className="text-xs text-muted-foreground mt-1">Choose any date</p>
+            <div className="mt-4 rounded-xl border border-border bg-secondary/40 p-2">
+              <Calendar
+                mode="single"
+                selected={new Date(date + "T00:00:00")}
+                onSelect={(d) => {
+                  if (!d) return;
+                  const local = new Date(d);
+                  local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+                  setDate(local.toISOString().slice(0, 10));
+                }}
+                modifiers={{
+                  hasReservations: (day) => {
+                    const local = new Date(day);
+                    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+                    const iso = local.toISOString().slice(0, 10);
+                    return (countByDate.get(iso) ?? 0) > 0;
+                  },
+                }}
+                modifiersClassNames={{
+                  hasReservations: "font-bold text-primary",
+                }}
+                className="p-2 pointer-events-auto"
+              />
             </div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-2">
+              Bold dates have reservations
+            </p>
           </div>
 
           <div>
