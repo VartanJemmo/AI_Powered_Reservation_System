@@ -3,7 +3,7 @@
 // can see them. The same shape is preserved so existing UI keeps working.
 import { supabase } from "@/integrations/supabase/client";
 
-export type Seating = "indoor-non-smoking" | "outdoor-smoking";
+export type Seating = "non-smoking" | "smoking" | "outdoor";
 
 export type Reservation = {
   id: string;
@@ -22,8 +22,9 @@ export type Reservation = {
 };
 
 export const SEATING_LABELS: Record<Seating, string> = {
-  "indoor-non-smoking": "Indoor · Non-smoking",
-  "outdoor-smoking": "Outdoor · Smoking",
+  "non-smoking": "Non-smoking",
+  "smoking": "Smoking",
+  "outdoor": "Outdoor",
 };
 
 const SLOT_CAPACITY = 12;
