@@ -202,13 +202,13 @@ const Table = ({
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect({ id, seats });
+        onSelect({ id, seats, section });
       }}
     >
-      {/* Glowing reserve ring on the floor */}
+      {/* Glowing reserve ring on the floor — color-coded by section */}
       <mesh ref={ringRef} rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
         <ringGeometry args={[1.35, 1.55, 48]} />
-        <meshBasicMaterial color="#c9821f" transparent opacity={0.4} side={THREE.DoubleSide} />
+        <meshBasicMaterial color={meta.ringColor} transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Tablecloth */}
@@ -216,8 +216,8 @@ const Table = ({
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.85, 0.85, 0.05, 32]} />
           <meshStandardMaterial
-            color={hovered ? "#fff5dc" : "#f3ead7"}
-            emissive={hovered ? "#c9821f" : "#000000"}
+            color={hovered ? "#fff5dc" : meta.cloth}
+            emissive={hovered ? meta.ringColor : "#000000"}
             emissiveIntensity={hovered ? 0.25 : 0}
             roughness={0.85}
           />
@@ -226,8 +226,8 @@ const Table = ({
         <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
           <boxGeometry args={[2.2, 0.05, 1.1]} />
           <meshStandardMaterial
-            color={hovered ? "#fff5dc" : "#f3ead7"}
-            emissive={hovered ? "#c9821f" : "#000000"}
+            color={hovered ? "#fff5dc" : meta.cloth}
+            emissive={hovered ? meta.ringColor : "#000000"}
             emissiveIntensity={hovered ? 0.25 : 0}
             roughness={0.85}
           />
