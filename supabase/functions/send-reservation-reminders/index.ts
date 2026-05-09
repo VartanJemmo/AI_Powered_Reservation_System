@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
               date: r.reservation_date,
               time: r.reservation_time,
               partySize: r.party_size,
-              seating: r.seating ?? "indoor-non-smoking",
+              seating: r.seating ?? "non-smoking",
               seatingLabel,
             },
           },
