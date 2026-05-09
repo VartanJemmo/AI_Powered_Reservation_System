@@ -212,7 +212,7 @@ const ReservationCard = ({ r, readOnly }: { r: Reservation; readOnly?: boolean }
   };
 
   const cancel = async () => {
-    if (!confirm("Cancel this reservation? This cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete your reservation?")) return;
     setCancelling(true);
     try {
       await deleteReservation(r.id);
