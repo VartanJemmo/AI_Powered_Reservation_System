@@ -80,7 +80,7 @@ const MyReservations = () => {
     <main className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-50 pointer-events-none" aria-hidden />
       <header className="container-narrow pt-8 flex items-center justify-between">
-        <Link to="/"><Logo /></Link>
+        <Logo />
         <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
           ← Back to home
         </Link>
@@ -212,7 +212,7 @@ const ReservationCard = ({ r, readOnly }: { r: Reservation; readOnly?: boolean }
   };
 
   const cancel = async () => {
-    if (!confirm("Cancel this reservation? This cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete your reservation?")) return;
     setCancelling(true);
     try {
       await deleteReservation(r.id);
@@ -252,7 +252,7 @@ const ReservationCard = ({ r, readOnly }: { r: Reservation; readOnly?: boolean }
               disabled={cancelling}
               className="rounded-full border border-destructive/40 text-destructive px-3 py-1.5 text-xs hover:bg-destructive/10 disabled:opacity-50"
             >
-              {cancelling ? "Cancelling…" : "Cancel"}
+              {cancelling ? "Deleting…" : "Delete"}
             </button>
             <Link
               to={`/confirmation/${r.id}`}
