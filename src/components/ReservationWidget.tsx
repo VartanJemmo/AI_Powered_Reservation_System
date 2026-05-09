@@ -49,7 +49,7 @@ export const ReservationWidget = () => {
   const [email, setEmail] = useState(user?.email ?? "");
   const [notes, setNotes] = useState("");
   const [deposit, setDeposit] = useState(false);
-  const [seating, setSeating] = useState<Seating>("indoor-non-smoking");
+  const [seating, setSeating] = useState<Seating>("non-smoking");
   const [waitlist, setWaitlist] = useState(false);
   const [tableId, setTableId] = useState<string | null>(null);
 
