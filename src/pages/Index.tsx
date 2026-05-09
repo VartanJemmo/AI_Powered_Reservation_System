@@ -9,7 +9,7 @@ import { FloorPlan } from "@/components/FloorPlan";
 import { Feedback } from "@/components/Feedback";
 import { Visit } from "@/components/Visit";
 import { Footer } from "@/components/Footer";
-import { StickyReserveBar } from "@/components/StickyReserveBar";
+
 import { AmbientLayer } from "@/components/AmbientLayer";
 import { useEffect } from "react";
 import { refreshReservations } from "@/lib/reservations";
