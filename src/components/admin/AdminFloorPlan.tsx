@@ -89,7 +89,7 @@ export const AdminFloorPlan = ({ date, reservations }: Props) => {
           {PICKER_TABLES.map((t) => {
             const res = byTable.get(t.id);
             const reserved = !!res;
-            const outdoor = res?.seating === "outdoor-smoking";
+            const outdoor = res?.seating === "outdoor";
 
             const sizeClass =
               t.type === "round"
