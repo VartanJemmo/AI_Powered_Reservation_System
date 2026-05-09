@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import hero from "@/assets/hero-cinematic.jpg";
-import { QuickReserve } from "./QuickReserve";
+
 
 export const Hero = () => {
   const imgRef = useRef<HTMLImageElement>(null);
