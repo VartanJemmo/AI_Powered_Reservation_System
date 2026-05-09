@@ -55,9 +55,9 @@ export const Hero = () => {
         background: "radial-gradient(ellipse at center, transparent 40%, hsl(30 14% 4% / 0.55) 100%)",
       }} />
 
-      <div className="relative z-10 container-narrow pt-28 pb-16 grid lg:grid-cols-[1.1fr_minmax(320px,400px)] gap-10 items-center">
+      <div className="relative z-10 container-narrow pt-28 pb-16 flex justify-center items-center">
         {/* Headline column */}
-        <div className="text-center lg:text-left">
+        <div className="text-center max-w-3xl">
           <span className="eyebrow justify-center lg:justify-start animate-fade-in">
             <span className="gold-divider" /> Beirut · Est. heritage <span className="gold-divider" />
           </span>
