@@ -106,10 +106,6 @@ export const Hero = () => {
           </div>
         </div>
 
-        {/* Inline quick-reserve card */}
-        <div className="animate-fade-up" style={{ animationDelay: "550ms" }}>
-          <QuickReserve />
-        </div>
       </div>
 
       <a
