@@ -35,7 +35,6 @@ const Index = () => {
       <MenuPreview />
       <OrderBuilder />
       <Walkthrough3D />
-      <FloorPlan />
       <ReservationWidget />
       <Feedback />
       <Visit />
