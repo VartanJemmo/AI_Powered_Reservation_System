@@ -387,12 +387,14 @@ const Admin = () => {
                             </span>
                             <span
                               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                                r.seating === "outdoor-smoking"
+                                r.seating === "outdoor"
                                   ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                                  : r.seating === "smoking"
+                                  ? "border-orange-500/40 text-orange-400 bg-orange-500/10"
                                   : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
                               }`}
                             >
-                              {r.seating === "outdoor-smoking" ? "🌿 Outdoor" : "🏠 Indoor"}
+                              {r.seating === "outdoor" ? "🌿 Outdoor" : r.seating === "smoking" ? "🚬 Smoking" : "🚭 Non-smoking"}
                             </span>
                             {r.tableId && (
                               <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary">
