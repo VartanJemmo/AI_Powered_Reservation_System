@@ -63,6 +63,7 @@ export const ReservationWidget = () => {
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
         if (parsed.seats) setParty(Math.min(parsed.seats, 8));
+        if (parsed.seating) setSeating(parsed.seating);
         setStep(4);
         sessionStorage.removeItem("mayrig.preselected-table");
         return;
