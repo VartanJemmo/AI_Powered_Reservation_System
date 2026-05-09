@@ -30,13 +30,11 @@ const Index = () => {
     <main className="min-h-screen bg-background text-foreground">
       <Navbar />
       <Hero />
-      <StoryStrip />
       <About />
       <MenuPreview />
       <OrderBuilder />
       <Walkthrough3D />
       <FloorPlan />
-      <ReservationWidget />
       <Feedback />
       <Visit />
       <Footer />
