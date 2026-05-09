@@ -80,7 +80,7 @@ function rowToReservation(r: Row): Reservation {
     email: r.email ?? undefined,
     deposit: r.deposit,
     notes: r.notes ?? undefined,
-    seating: (r.seating ?? "indoor-non-smoking") as Seating,
+    seating: (r.seating ?? "non-smoking") as Seating,
     status: r.status,
     tableId: r.table_id ?? undefined,
     createdAt: r.created_at,
