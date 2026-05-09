@@ -55,10 +55,10 @@ export const Hero = () => {
         background: "radial-gradient(ellipse at center, transparent 40%, hsl(30 14% 4% / 0.55) 100%)",
       }} />
 
-      <div className="relative z-10 container-narrow pt-28 pb-16 grid lg:grid-cols-[1.1fr_minmax(320px,400px)] gap-10 items-center">
+      <div className="relative z-10 container-narrow pt-28 pb-16 flex justify-center items-center">
         {/* Headline column */}
-        <div className="text-center lg:text-left">
-          <span className="eyebrow justify-center lg:justify-start animate-fade-in">
+        <div className="text-center max-w-3xl">
+          <span className="eyebrow justify-center animate-fade-in">
             <span className="gold-divider" /> Beirut · Est. heritage <span className="gold-divider" />
           </span>
           <h1
@@ -81,10 +81,10 @@ export const Hero = () => {
               {tagline}
             </span>
           </h1>
-          <p className="mt-6 max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-muted-foreground animate-fade-up" style={{ animationDelay: "800ms" }}>
+          <p className="mt-6 max-w-xl mx-auto text-base sm:text-lg text-muted-foreground animate-fade-up" style={{ animationDelay: "800ms" }}>
             Heritage recipes, hand-crafted mezze and slow-grilled kebabs — served in a candlelit room shaped by generations of family tradition.
           </p>
-          <div className="mt-9 flex flex-col sm:flex-row items-center lg:items-start lg:justify-start justify-center gap-3 animate-fade-up" style={{ animationDelay: "950ms" }}>
+          <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "950ms" }}>
             <button
               onClick={scrollToReserve}
               className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-gradient-gold text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-medium shadow-gold animate-pulse-gold"
@@ -99,7 +99,7 @@ export const Hero = () => {
               Our story
             </a>
           </div>
-          <div className="mt-10 flex items-center justify-center lg:justify-start gap-6 text-xs uppercase tracking-widest text-muted-foreground animate-fade-in" style={{ animationDelay: "1100ms" }}>
+          <div className="mt-10 flex items-center justify-center gap-6 text-xs uppercase tracking-widest text-muted-foreground animate-fade-in" style={{ animationDelay: "1100ms" }}>
             <span className="text-primary">★★★★★ 4.9</span>
             <span aria-hidden>·</span>
             <span>Open today · 12:00 PM – 12:00 AM</span>
