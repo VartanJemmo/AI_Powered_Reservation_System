@@ -62,7 +62,7 @@ const Login = () => {
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-60 pointer-events-none" aria-hidden />
 
       <header className="container-narrow pt-8 relative">
-        <Link to="/" aria-label="Back to home"><Logo /></Link>
+        <Logo />
       </header>
 
       <section className="container-narrow relative flex-1 grid place-items-center py-12">
