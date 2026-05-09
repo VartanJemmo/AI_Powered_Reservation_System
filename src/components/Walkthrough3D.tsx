@@ -377,25 +377,120 @@ const Rugs = () => (
   </>
 );
 
-const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; seats: number }) => void }) => {
+type Section = "non-smoking" | "smoking" | "outdoor";
+
+const SECTION_ZONES: { section: Section; z: number; color: string }[] = [
+  { section: "non-smoking", z: -10, color: "#5cd6a8" },
+  { section: "smoking", z: 2, color: "#ff8a4a" },
+  { section: "outdoor", z: 12, color: "#7ec96b" },
+];
+
+const SectionFloorTint = ({ z, color, depth }: { z: number; color: string; depth: number }) => (
+  <mesh rotation-x={-Math.PI / 2} position={[0, 0.015, z]} receiveShadow>
+    <planeGeometry args={[ROOM.w - 6, depth]} />
+    <meshBasicMaterial color={color} transparent opacity={0.07} />
+  </mesh>
+);
+
+const SectionDivider = ({ z }: { z: number }) => (
+  <group position={[0, 0, z]}>
+    {/* Low planter wall */}
+    <mesh position={[0, 0.45, 0]} castShadow>
+      <boxGeometry args={[ROOM.w - 8, 0.9, 0.3]} />
+      <meshStandardMaterial color="#2a160a" roughness={0.7} />
+    </mesh>
+    {/* Plants on top */}
+    {Array.from({ length: 7 }).map((_, i) => (
+      <mesh key={i} position={[-9 + i * 3, 1.2, 0]} castShadow>
+        <sphereGeometry args={[0.4, 12, 12]} />
+        <meshStandardMaterial color="#3a6b3a" roughness={0.9} />
+      </mesh>
+    ))}
+  </group>
+);
+
+const SectionBanner = ({ z, label, color }: { z: number; label: string; color: string }) => (
+  <Html position={[0, ROOM.h - 0.6, z]} center distanceFactor={12} occlude={false}>
+    <div
+      className="pointer-events-none select-none whitespace-nowrap rounded-full border-2 px-5 py-1.5 text-xs uppercase tracking-[0.25em] font-display backdrop-blur-md shadow-lg"
+      style={{
+        borderColor: color,
+        color,
+        background: "hsl(0 0% 5% / 0.75)",
+        boxShadow: `0 0 24px ${color}55`,
+      }}
+    >
+      {label} Section
+    </div>
+  </Html>
+);
+
+const Patio = () => (
+  <group>
+    {/* Outdoor "sky" backdrop on far wall */}
+    <mesh position={[0, 2.5, 14]} rotation-y={Math.PI}>
+      <planeGeometry args={[ROOM.w - 8, 5]} />
+      <meshBasicMaterial color="#1a2845" />
+    </mesh>
+    {/* Stars */}
+    {Array.from({ length: 18 }).map((_, i) => (
+      <mesh key={i} position={[-12 + (i * 1.4) % 24, 2 + ((i * 7) % 30) / 10, 13.95]}>
+        <sphereGeometry args={[0.04, 6, 6]} />
+        <meshBasicMaterial color="#fff5dc" />
+      </mesh>
+    ))}
+    {/* Potted palms */}
+    {[-10, 10].map((x) => (
+      <group key={x} position={[x, 0, 11]}>
+        <mesh position={[0, 0.4, 0]} castShadow>
+          <cylinderGeometry args={[0.35, 0.45, 0.8, 12]} />
+          <meshStandardMaterial color="#5a3a22" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 1.2, 0]} castShadow>
+          <coneGeometry args={[0.9, 1.6, 8]} />
+          <meshStandardMaterial color="#3a6b3a" roughness={0.8} />
+        </mesh>
+      </group>
+    ))}
+    {/* String lights overhead */}
+    {Array.from({ length: 12 }).map((_, i) => (
+      <mesh key={i} position={[-11 + i * 2, ROOM.h - 1.2, 12]}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshStandardMaterial color="#ffd089" emissive="#ffb84a" emissiveIntensity={2.5} />
+      </mesh>
+    ))}
+  </group>
+);
+
+const RestaurantScene = ({
+  onSelectTable,
+}: {
+  onSelectTable: (t: { id: string; seats: number; section: Section }) => void;
+}) => {
   const tables = useMemo(
     () =>
       [
-        { id: "T1", p: [-8, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "T2", p: [-8, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "T3", p: [-8, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "T4", p: [0, 0, -8] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "T5", p: [0, 0, 0] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "T6", p: [0, 0, 8] as [number, number, number], s: "round" as const, seats: 4 },
-        { id: "B1", p: [-13, 0, -10] as [number, number, number], s: "rect" as const, seats: 6 },
-        { id: "B2", p: [-13, 0, 10] as [number, number, number], s: "rect" as const, seats: 6 },
+        // Non-smoking section (back of room)
+        { id: "N1", p: [-8, 0, -12] as [number, number, number], s: "round" as const, seats: 4, section: "non-smoking" as Section },
+        { id: "N2", p: [0, 0, -12] as [number, number, number], s: "round" as const, seats: 4, section: "non-smoking" as Section },
+        { id: "N3", p: [8, 0, -12] as [number, number, number], s: "round" as const, seats: 4, section: "non-smoking" as Section },
+        { id: "N4", p: [-8, 0, -7] as [number, number, number], s: "round" as const, seats: 4, section: "non-smoking" as Section },
+        { id: "N5", p: [8, 0, -7] as [number, number, number], s: "rect" as const, seats: 6, section: "non-smoking" as Section },
+        // Smoking section (middle)
+        { id: "S1", p: [-8, 0, 0] as [number, number, number], s: "round" as const, seats: 4, section: "smoking" as Section },
+        { id: "S2", p: [0, 0, 2] as [number, number, number], s: "round" as const, seats: 4, section: "smoking" as Section },
+        { id: "S3", p: [8, 0, 0] as [number, number, number], s: "rect" as const, seats: 6, section: "smoking" as Section },
+        // Outdoor section (front, near entry)
+        { id: "O1", p: [-7, 0, 10] as [number, number, number], s: "round" as const, seats: 4, section: "outdoor" as Section },
+        { id: "O2", p: [0, 0, 12] as [number, number, number], s: "round" as const, seats: 4, section: "outdoor" as Section },
+        { id: "O3", p: [7, 0, 10] as [number, number, number], s: "round" as const, seats: 4, section: "outdoor" as Section },
       ],
     [],
   );
 
   return (
     <>
-      <fog attach="fog" args={["#1a0f08", 18, 55]} />
+      <fog attach="fog" args={["#1a0f08", 22, 60]} />
       <ambientLight intensity={0.85} color="#ffd9a8" />
       <hemisphereLight args={["#ffc987", "#3a2114", 0.7]} />
       <directionalLight position={[0, 8, 0]} intensity={0.4} color="#ffd9a8" />
@@ -404,6 +499,19 @@ const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; s
       <Walls />
       <Rugs />
       <Bar />
+      {/* Section floor tints */}
+      <SectionFloorTint z={-10} color="#5cd6a8" depth={9} />
+      <SectionFloorTint z={2} color="#ff8a4a" depth={9} />
+      <SectionFloorTint z={12} color="#7ec96b" depth={6} />
+      {/* Section dividers */}
+      <SectionDivider z={-4.5} />
+      <SectionDivider z={7} />
+      {/* Outdoor patio decor */}
+      <Patio />
+      {/* Banners overhead */}
+      {SECTION_ZONES.map((s) => (
+        <SectionBanner key={s.section} z={s.z} label={s.section.replace("-", " ")} color={s.color} />
+      ))}
       {tables.map((t, i) => (
         <Table
           key={t.id}
@@ -411,13 +519,14 @@ const RestaurantScene = ({ onSelectTable }: { onSelectTable: (t: { id: string; s
           seats={t.seats}
           position={t.p}
           shape={t.s}
+          section={t.section}
           rotation={(i * Math.PI) / 5}
           onSelect={onSelectTable}
         />
       ))}
-      <Chandelier position={[-4, 0, -4]} />
-      <Chandelier position={[-4, 0, 4]} />
-      <Chandelier position={[4, 0, 0]} />
+      <Chandelier position={[-4, 0, -8]} />
+      <Chandelier position={[4, 0, -8]} />
+      <Chandelier position={[0, 0, 1]} />
     </>
   );
 };
