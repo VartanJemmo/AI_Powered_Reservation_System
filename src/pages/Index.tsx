@@ -36,12 +36,10 @@ const Index = () => {
       <About />
       <MenuPreview />
       <OrderBuilder />
-      <Gallery />
       <Walkthrough3D />
       <FloorPlan />
       <ReservationWidget />
       <Feedback />
-      <Delivery />
       <Visit />
       <Footer />
       <StickyReserveBar />
