@@ -27,7 +27,7 @@ export const SEATING_LABELS: Record<Seating, string> = {
   "outdoor": "Outdoor",
 };
 
-const SLOT_CAPACITY = 12;
+const SLOT_CAPACITY = 140;
 const POPULAR_TIMES = new Set(["19:00", "19:30", "20:00", "20:30"]);
 
 export const ALL_TIMES: string[] = (() => {
