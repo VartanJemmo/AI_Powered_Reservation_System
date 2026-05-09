@@ -58,7 +58,7 @@ export const Hero = () => {
       <div className="relative z-10 container-narrow pt-28 pb-16 flex justify-center items-center">
         {/* Headline column */}
         <div className="text-center max-w-3xl">
-          <span className="eyebrow justify-center lg:justify-start animate-fade-in">
+          <span className="eyebrow justify-center animate-fade-in">
             <span className="gold-divider" /> Beirut · Est. heritage <span className="gold-divider" />
           </span>
           <h1
