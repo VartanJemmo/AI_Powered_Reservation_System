@@ -114,8 +114,8 @@ export const template = {
     date: '2026-04-20',
     time: '19:30',
     partySize: 4,
-    seating: 'outdoor-smoking',
-    seatingLabel: 'Outdoor · Smoking',
+    seating: 'outdoor',
+    seatingLabel: 'Outdoor',
   },
 } satisfies TemplateEntry
 
