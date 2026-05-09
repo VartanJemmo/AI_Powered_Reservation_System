@@ -1,12 +1,20 @@
+import { useLocation, useNavigate } from "react-router-dom";
+
 export const Logo = ({ className = "" }: { className?: string }) => {
-  const scrollTop = (e: React.MouseEvent) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const onClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (location.pathname !== "/") {
+      navigate("/");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
   return (
     <a
-      href="#top"
-      onClick={scrollTop}
+      href="/"
+      onClick={onClick}
       aria-label="Back to top"
       className={`flex items-center gap-2 hover:opacity-80 transition-opacity ${className}`}
     >
