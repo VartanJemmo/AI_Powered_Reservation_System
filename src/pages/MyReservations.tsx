@@ -80,7 +80,7 @@ const MyReservations = () => {
     <main className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-50 pointer-events-none" aria-hidden />
       <header className="container-narrow pt-8 flex items-center justify-between">
-        <Link to="/"><Logo /></Link>
+        <Logo />
         <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
           ← Back to home
         </Link>
