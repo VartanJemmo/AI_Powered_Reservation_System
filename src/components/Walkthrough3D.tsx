@@ -591,9 +591,9 @@ export const Walkthrough3D = () => {
   const [locked, setLocked] = useState(false);
   const touchDir = useRef({ x: 0, y: 0 });
   const controlsRef = useRef<any>(null);
-  const [picked, setPicked] = useState<{ id: string; seats: number } | null>(null);
+  const [picked, setPicked] = useState<{ id: string; seats: number; section: Section } | null>(null);
 
-  const handleSelectTable = (t: { id: string; seats: number }) => {
+  const handleSelectTable = (t: { id: string; seats: number; section: Section }) => {
     try {
       if (document.pointerLockElement) document.exitPointerLock();
     } catch {}
@@ -604,7 +604,7 @@ export const Walkthrough3D = () => {
     if (!picked) return;
     sessionStorage.setItem(
       "mayrig.preselected-table",
-      JSON.stringify({ tableId: picked.id, seats: picked.seats }),
+      JSON.stringify({ tableId: picked.id, seats: picked.seats, seating: picked.section }),
     );
     setPicked(null);
     const el = document.getElementById("reserve");
