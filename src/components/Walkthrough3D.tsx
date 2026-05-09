@@ -533,6 +533,7 @@ export const Walkthrough3D = () => {
 
           {!locked && !picked && (
             <button
+              id="walkthrough-enter-btn"
               onClick={tryLock}
               className="absolute inset-0 z-20 grid place-items-center bg-background/70 backdrop-blur-sm hidden md:grid"
               aria-label="Enter walkthrough"
