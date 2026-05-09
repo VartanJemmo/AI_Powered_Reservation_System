@@ -81,7 +81,7 @@ const Confirmation = () => {
     <main className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-radial-gold opacity-60 pointer-events-none" aria-hidden />
       <header className="container-narrow pt-8">
-        <Link to="/"><Logo /></Link>
+        <Logo />
       </header>
 
       <section className="container-narrow relative pt-12 pb-20 max-w-xl">
