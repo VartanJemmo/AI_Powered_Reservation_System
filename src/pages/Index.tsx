@@ -4,6 +4,7 @@ import { About } from "@/components/About";
 import { MenuPreview } from "@/components/MenuPreview";
 import { OrderBuilder } from "@/components/OrderBuilder";
 import { Walkthrough3D } from "@/components/Walkthrough3D";
+import { ReservationWidget } from "@/components/ReservationWidget";
 import { FloorPlan } from "@/components/FloorPlan";
 import { Feedback } from "@/components/Feedback";
 import { Visit } from "@/components/Visit";
