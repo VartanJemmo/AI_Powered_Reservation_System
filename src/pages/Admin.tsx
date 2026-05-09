@@ -131,7 +131,7 @@ const Admin = () => {
   );
 
   // Counts per day for sidebar strip
-  const dateStrip = useMemo(() => buildDateStrip(14), []);
+  
   const allReservations = useMemo(() => loadReservations(), [tick]);
   const countByDate = useMemo(() => {
     const map = new Map<string, number>();
