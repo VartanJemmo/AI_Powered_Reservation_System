@@ -81,10 +81,10 @@ export const Hero = () => {
               {tagline}
             </span>
           </h1>
-          <p className="mt-6 max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-muted-foreground animate-fade-up" style={{ animationDelay: "800ms" }}>
+          <p className="mt-6 max-w-xl mx-auto text-base sm:text-lg text-muted-foreground animate-fade-up" style={{ animationDelay: "800ms" }}>
             Heritage recipes, hand-crafted mezze and slow-grilled kebabs — served in a candlelit room shaped by generations of family tradition.
           </p>
-          <div className="mt-9 flex flex-col sm:flex-row items-center lg:items-start lg:justify-start justify-center gap-3 animate-fade-up" style={{ animationDelay: "950ms" }}>
+          <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "950ms" }}>
             <button
               onClick={scrollToReserve}
               className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-gradient-gold text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-medium shadow-gold animate-pulse-gold"
