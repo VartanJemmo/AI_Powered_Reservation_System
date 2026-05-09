@@ -521,6 +521,7 @@ export const Walkthrough3D = () => {
               <Player touchDir={touchDir} />
               <PointerLockControls
                 ref={controlsRef}
+                selector="#walkthrough-enter-btn"
                 onLock={() => setLocked(true)}
                 onUnlock={() => setLocked(false)}
               />
