@@ -36,10 +36,10 @@ const Index = () => {
       <OrderBuilder />
       <Walkthrough3D />
       <FloorPlan />
+      <ReservationWidget />
       <Feedback />
       <Visit />
       <Footer />
-      <StickyReserveBar />
       <AmbientLayer />
       <script
         type="application/ld+json"
