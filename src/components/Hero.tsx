@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import hero from "@/assets/hero-cinematic.jpg";
-import { QuickReserve } from "./QuickReserve";
+
 
 export const Hero = () => {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -106,10 +106,6 @@ export const Hero = () => {
           </div>
         </div>
 
-        {/* Inline quick-reserve card */}
-        <div className="animate-fade-up" style={{ animationDelay: "550ms" }}>
-          <QuickReserve />
-        </div>
       </div>
 
       <a
