@@ -252,7 +252,7 @@ const ReservationCard = ({ r, readOnly }: { r: Reservation; readOnly?: boolean }
               disabled={cancelling}
               className="rounded-full border border-destructive/40 text-destructive px-3 py-1.5 text-xs hover:bg-destructive/10 disabled:opacity-50"
             >
-              {cancelling ? "Cancelling…" : "Cancel"}
+              {cancelling ? "Deleting…" : "Delete"}
             </button>
             <Link
               to={`/confirmation/${r.id}`}
