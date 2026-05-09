@@ -10,6 +10,7 @@ import {
 } from "@/lib/reservations";
 import { getAllOrders, formatPrice, type GuestOrder } from "@/lib/orders";
 import { Logo } from "@/components/Logo";
+import { Calendar } from "@/components/ui/calendar";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
