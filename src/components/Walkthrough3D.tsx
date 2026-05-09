@@ -249,7 +249,7 @@ const Table = ({
               : "bg-background/80 text-primary border-primary/40 backdrop-blur"
           }`}
         >
-          {id} · {seats}p · {hovered ? "Reserve →" : "Tap to reserve"}
+          {id} · {seats}p · {meta.label}{hovered ? " · Reserve →" : ""}
         </div>
       </Html>
       {/* Wine glass */}
