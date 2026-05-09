@@ -58,7 +58,7 @@ export const ReservationWidget = () => {
     const raw = sessionStorage.getItem("mayrig.preselected-table");
     if (raw) {
       try {
-        const parsed = JSON.parse(raw) as { tableId: string; seats: number; date: string; time: string };
+        const parsed = JSON.parse(raw) as { tableId: string; seats: number; date?: string; time?: string; seating?: Seating };
         setTableId(parsed.tableId);
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
