@@ -148,12 +148,22 @@ const Candle = ({ position }: { position: [number, number, number] }) => {
   );
 };
 
+const SECTION_META: Record<
+  "non-smoking" | "smoking" | "outdoor",
+  { label: string; ringColor: string; cloth: string; chair: string }
+> = {
+  "non-smoking": { label: "Non-smoking", ringColor: "#5cd6a8", cloth: "#f3ead7", chair: "#3a2010" },
+  "smoking": { label: "Smoking", ringColor: "#ff8a4a", cloth: "#e8d3a8", chair: "#4a2a18" },
+  "outdoor": { label: "Outdoor", ringColor: "#7ec96b", cloth: "#fffaee", chair: "#5a3a22" },
+};
+
 const Table = ({
   position,
   rotation = 0,
   shape = "round",
   id,
   seats: seatCount,
+  section,
   onSelect,
 }: {
   position: [number, number, number];
@@ -161,11 +171,13 @@ const Table = ({
   shape?: "round" | "rect";
   id: string;
   seats: number;
-  onSelect: (t: { id: string; seats: number }) => void;
+  section: "non-smoking" | "smoking" | "outdoor";
+  onSelect: (t: { id: string; seats: number; section: "non-smoking" | "smoking" | "outdoor" }) => void;
 }) => {
   const seats = seatCount;
   const [hovered, setHovered] = useState(false);
   const ringRef = useRef<THREE.Mesh>(null!);
+  const meta = SECTION_META[section];
   useFrame(() => {
     if (ringRef.current) {
       const m = ringRef.current.material as THREE.MeshBasicMaterial;
