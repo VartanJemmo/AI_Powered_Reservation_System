@@ -387,12 +387,14 @@ const Admin = () => {
                             </span>
                             <span
                               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                                r.seating === "outdoor-smoking"
+                                r.seating === "outdoor"
                                   ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                                  : r.seating === "smoking"
+                                  ? "border-orange-500/40 text-orange-400 bg-orange-500/10"
                                   : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
                               }`}
                             >
-                              {r.seating === "outdoor-smoking" ? "🌿 Outdoor" : "🏠 Indoor"}
+                              {r.seating === "outdoor" ? "🌿 Outdoor" : r.seating === "smoking" ? "🚬 Smoking" : "🚭 Non-smoking"}
                             </span>
                             {r.tableId && (
                               <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary">
@@ -490,13 +492,15 @@ const Admin = () => {
                     {r.name}
                     <span
                       className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-widest ${
-                        r.seating === "outdoor-smoking"
+                        r.seating === "outdoor"
                           ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                          : r.seating === "smoking"
+                          ? "border-orange-500/40 text-orange-400 bg-orange-500/10"
                           : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
                       }`}
                       title={SEATING_LABELS[r.seating]}
                     >
-                      {r.seating === "outdoor-smoking" ? "🌿 Outdoor · Smoking" : "🏠 Indoor · Non-smoking"}
+                      {r.seating === "outdoor" ? "🌿 Outdoor" : r.seating === "smoking" ? "🚬 Smoking" : "🚭 Non-smoking"}
                     </span>
                   </div>
                   {r.notes && <div className="text-xs text-muted-foreground mt-0.5 italic">"{r.notes}"</div>}
@@ -736,8 +740,9 @@ const EditReservationModal = ({
               onChange={(e) => setSeating(e.target.value as Seating)}
               className="h-10 w-full rounded-lg border border-border bg-input/60 px-3"
             >
-              <option value="indoor-non-smoking">Indoor · Non-smoking</option>
-              <option value="outdoor-smoking">Outdoor · Smoking</option>
+              <option value="non-smoking">Non-smoking</option>
+              <option value="smoking">Smoking</option>
+              <option value="outdoor">Outdoor</option>
             </select>
           </Field>
 

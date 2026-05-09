@@ -79,15 +79,17 @@ Deno.serve(async (req) => {
   for (const r of due) {
     const recipient = r.email ?? null;
     const seatingLabel =
-      r.seating === "outdoor-smoking"
-        ? "Outdoor · Smoking"
-        : "Indoor · Non-smoking";
+      r.seating === "outdoor"
+        ? "Outdoor"
+        : r.seating === "smoking"
+        ? "Smoking"
+        : "Non-smoking";
     const payload = {
       name: r.name,
       date: r.reservation_date,
       time: r.reservation_time,
       partySize: r.party_size,
-      seating: r.seating ?? "indoor-non-smoking",
+      seating: r.seating ?? "non-smoking",
       seatingLabel,
       reservationId: r.id,
     };
@@ -142,7 +144,7 @@ Deno.serve(async (req) => {
               date: r.reservation_date,
               time: r.reservation_time,
               partySize: r.party_size,
-              seating: r.seating ?? "indoor-non-smoking",
+              seating: r.seating ?? "non-smoking",
               seatingLabel,
             },
           },

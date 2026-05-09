@@ -89,7 +89,7 @@ export const AdminFloorPlan = ({ date, reservations }: Props) => {
           {PICKER_TABLES.map((t) => {
             const res = byTable.get(t.id);
             const reserved = !!res;
-            const outdoor = res?.seating === "outdoor-smoking";
+            const outdoor = res?.seating === "outdoor";
 
             const sizeClass =
               t.type === "round"
@@ -157,12 +157,14 @@ export const AdminFloorPlan = ({ date, reservations }: Props) => {
               <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                 <span
                   className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-widest ${
-                    r.seating === "outdoor-smoking"
+                    r.seating === "outdoor"
                       ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                      : r.seating === "smoking"
+                      ? "border-orange-500/40 text-orange-400 bg-orange-500/10"
                       : "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
                   }`}
                 >
-                  {r.seating === "outdoor-smoking" ? "🌿 Outdoor" : "🏠 Indoor"}
+                  {r.seating === "outdoor" ? "🌿 Outdoor" : r.seating === "smoking" ? "🚬 Smoking" : "🚭 Non-smoking"}
                 </span>
                 <span className="inline-flex items-center rounded-full border border-border bg-secondary/60 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
                   {r.status}

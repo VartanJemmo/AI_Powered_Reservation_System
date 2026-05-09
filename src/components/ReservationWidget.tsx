@@ -49,7 +49,7 @@ export const ReservationWidget = () => {
   const [email, setEmail] = useState(user?.email ?? "");
   const [notes, setNotes] = useState("");
   const [deposit, setDeposit] = useState(false);
-  const [seating, setSeating] = useState<Seating>("indoor-non-smoking");
+  const [seating, setSeating] = useState<Seating>("non-smoking");
   const [waitlist, setWaitlist] = useState(false);
   const [tableId, setTableId] = useState<string | null>(null);
 
@@ -58,11 +58,12 @@ export const ReservationWidget = () => {
     const raw = sessionStorage.getItem("mayrig.preselected-table");
     if (raw) {
       try {
-        const parsed = JSON.parse(raw) as { tableId: string; seats: number; date: string; time: string };
+        const parsed = JSON.parse(raw) as { tableId: string; seats: number; date?: string; time?: string; seating?: Seating };
         setTableId(parsed.tableId);
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
         if (parsed.seats) setParty(Math.min(parsed.seats, 8));
+        if (parsed.seating) setSeating(parsed.seating);
         setStep(4);
         sessionStorage.removeItem("mayrig.preselected-table");
         return;
@@ -375,10 +376,14 @@ export const ReservationWidget = () => {
 
                 <div className="mt-2">
                   <Label>Seating preference</Label>
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {(["indoor-non-smoking", "outdoor-smoking"] as Seating[]).map((opt) => {
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {(["non-smoking", "smoking", "outdoor"] as Seating[]).map((opt) => {
                       const active = seating === opt;
-                      const isIndoor = opt === "indoor-non-smoking";
+                      const meta = {
+                        "non-smoking": { icon: "🚭", title: "Non-smoking", sub: "Indoor, smoke-free" },
+                        "smoking": { icon: "🚬", title: "Smoking", sub: "Indoor smoking section" },
+                        "outdoor": { icon: "🌿", title: "Outdoor", sub: "Patio, smoking allowed" },
+                      }[opt];
                       return (
                         <button
                           key={opt}
@@ -392,11 +397,11 @@ export const ReservationWidget = () => {
                           }`}
                         >
                           <div className="flex items-center gap-2 text-sm font-medium">
-                            <span aria-hidden>{isIndoor ? "🏠" : "🌿"}</span>
-                            {isIndoor ? "Indoor" : "Outdoor"}
+                            <span aria-hidden>{meta.icon}</span>
+                            {meta.title}
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
-                            {isIndoor ? "Non-smoking" : "Smoking allowed"}
+                            {meta.sub}
                           </div>
                         </button>
                       );

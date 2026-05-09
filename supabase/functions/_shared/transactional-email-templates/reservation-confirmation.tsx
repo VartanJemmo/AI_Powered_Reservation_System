@@ -22,18 +22,19 @@ interface ReservationConfirmationProps {
   partySize?: number
   deposit?: boolean
   notes?: string
-  seating?: 'indoor-non-smoking' | 'outdoor-smoking'
+  seating?: 'non-smoking' | 'smoking' | 'outdoor'
   seatingLabel?: string
   status?: 'confirmed' | 'waitlist'
 }
 
 const seatingDisplay = (
-  seating?: 'indoor-non-smoking' | 'outdoor-smoking',
+  seating?: 'non-smoking' | 'smoking' | 'outdoor',
   seatingLabel?: string,
 ) => {
   if (seatingLabel) return seatingLabel
-  if (seating === 'outdoor-smoking') return 'Outdoor · Smoking'
-  if (seating === 'indoor-non-smoking') return 'Indoor · Non-smoking'
+  if (seating === 'outdoor') return 'Outdoor'
+  if (seating === 'smoking') return 'Smoking'
+  if (seating === 'non-smoking') return 'Non-smoking'
   return ''
 }
 
@@ -153,8 +154,8 @@ export const template = {
     partySize: 4,
     deposit: true,
     notes: 'Window table if possible — celebrating an anniversary.',
-    seating: 'indoor-non-smoking',
-    seatingLabel: 'Indoor · Non-smoking',
+    seating: 'non-smoking',
+    seatingLabel: 'Non-smoking',
     status: 'confirmed',
   },
 } satisfies TemplateEntry
