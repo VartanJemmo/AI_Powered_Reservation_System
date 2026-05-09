@@ -154,8 +154,8 @@ export const template = {
     partySize: 4,
     deposit: true,
     notes: 'Window table if possible — celebrating an anniversary.',
-    seating: 'indoor-non-smoking',
-    seatingLabel: 'Indoor · Non-smoking',
+    seating: 'non-smoking',
+    seatingLabel: 'Non-smoking',
     status: 'confirmed',
   },
 } satisfies TemplateEntry
